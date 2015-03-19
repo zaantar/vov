@@ -9,6 +9,9 @@
 # This is a file intended for hooking in a custom Vagrant configuration on up
 /Customfile
 
+# This is just a backup of the Vagrantfile
+/Vagrantfile-backup
+
 # Allow for custom provisioning scripts that are not included with the repo
 /provision/provision-custom.sh
 /provision/provision-pre.sh
