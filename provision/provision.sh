@@ -99,6 +99,12 @@ apt_package_check_list=(
 	# nodejs for use by grunt
 	g++
 	nodejs
+
+	# otgs additions
+	htop
+	ack-grep
+	colordiff
+	
 )
 
 echo "Check for apt packages to install..."
