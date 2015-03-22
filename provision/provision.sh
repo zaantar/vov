@@ -104,7 +104,7 @@ apt_package_check_list=(
 	htop
 	ack-grep
 	colordiff
-	
+	fortune
 )
 
 echo "Check for apt packages to install..."
