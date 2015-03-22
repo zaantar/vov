@@ -5,3 +5,28 @@
 # provisioning is finished. This allows for various scripts and configurations to
 # be available to us.
 #
+
+# basic linux shortcuts
+alias nw='nano -w'
+alias syslog='tail -f /var/log/syslog'
+alias ll='ls -l'
+
+# favourite directories
+alias cdwp='cd /srv/www/wordpress-default'
+
+# ack
+alias ack='ack-grep'
+alias colourdiff='colordiff'
+
+# subversion
+alias svndiff='svn diff | colourdiff'
+alias svnlog='svn log | head -n 50'
+
+### otgs tools ###
+
+# switch between embedded and full views
+alias views_full='wp plugin deactivate embedded-views; wp plugin activate wp-views'
+alias views_embedded='wp plugin deactivate wp-views; wp plugin activate embedded-views'
+
+# activate all toolset plugins
+alias toolset_activate='wp plugin activate types wp-views cred layouts'
