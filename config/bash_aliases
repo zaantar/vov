@@ -91,7 +91,7 @@ BYellow='\e[1;33m'      # Yellow
 BBlue='\e[1;34m'        # Blue
 BPurple='\e[1;35m'      # Purple
 BCyan='\e[1;36m'        # Cyan
-BWhite='\e[1;37m'       # Whit
+BWhite='\e[1;37m'       # White
 
 # Background
 On_Black='\e[40m'       # Black
