@@ -485,6 +485,20 @@ if [[ $ping_result == "Connected" ]]; then
 	/srv/www/phpcs/scripts/phpcs --config-set installed_paths ./CodeSniffer/Standards/WordPress/
 	/srv/www/phpcs/scripts/phpcs --config-set default_standard WordPress-Core
 	/srv/www/phpcs/scripts/phpcs -i
+	
+	# Function to install and activate a list of default plugins on each site
+	# Accepts one argument with site name.
+	function wp_install_default_plugins() { 
+		echo "Installing and activating default plugins for $1..."
+		
+		# Skip comments and empty lines	
+		grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
+			# Iterate through all plugin names
+			while read plugin_name; do
+				wp plugin install "$plugin_name" --activate
+			done 
+		}
+	}
 
 	# Install and configure the latest stable version of WordPress
 	if [[ ! -d /srv/www/wordpress-default ]]; then
@@ -512,6 +526,7 @@ PHP
 		cd /srv/www/wordpress-default
 		wp core upgrade
 	fi
+	wp_install_default_plugins "WordPress Stable"
 
 	# Test to see if an svn upgrade is needed
 	svn_test=$( svn status -u /srv/www/wordpress-develop/ 2>&1 );
@@ -544,6 +559,7 @@ PHP
 		cd /srv/www/wordpress-trunk
 		svn up
 	fi
+	wp_install_default_plugins "WordPress trunk"
 
 	# Checkout, install and configure WordPress trunk via develop.svn
 	if [[ ! -d /srv/www/wordpress-develop ]]; then
@@ -585,6 +601,7 @@ PHP
 		echo "Updating npm packages..."
 		npm install &>/dev/null
 	fi
+	wp_install_default_plugins "WordPress develop"
 
 	if [[ ! -d /srv/www/wordpress-develop/build ]]; then
 		echo "Initializing grunt in WordPress develop... This may take a few moments."

@@ -1,0 +1,7 @@
+# List of WordPress plugins that should be downloaded and activated on each site.
+# You can enter anything that wp-cli will accept in 'wp plugin install {$plugin} --activate'.
+# Enter one item per line.
+   
+debug-bar
+user-switching
+admin-bar-user-switching
