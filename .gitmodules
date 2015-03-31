@@ -1,6 +1,0 @@
-[submodule "externals/vv"]
-	path = externals/vv
-	url = git://github.com/bradp/vv.git
-[submodule "externals/checkout"]
-	path = externals/checkout
-	url = git@bitbucket.org:riccardos/builder.git
