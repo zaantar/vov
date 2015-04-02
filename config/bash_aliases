@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # bash_aliases
 #
 # This file is copied into the home directory of the vagrant user on the virtual
@@ -55,12 +57,36 @@ alias svnlog='svn log | head -n 50'
 ### otgs tools 
 ###
 
+# get wp paths from anywhere within WordPress instalation
+function wp_content_dir {
+	wp eval 'echo WP_CONTENT_DIR;'
+}
+
+function wp_plugins_dir {
+	content_dir=`wp_content_dir`
+	echo $content_dir/plugins
+}
+
 # switch between embedded and full views
-alias views_full='wp plugin deactivate embedded-views; wp plugin activate wp-views'
-alias views_embedded='wp plugin deactivate wp-views; wp plugin activate embedded-views'
+
+function views_embedded {
+	plugins_dir=`wp_plugins_dir`
+	wp plugin deactivate wp-views
+	mv "$plugins_dir/wp-views/embedded" "$plugins_dir/embedded-views"
+	wp plugin activate embedded-views
+}
+
+function views_full {
+	wp plugin deactivate embedded-views
+	mv "$plugins_dir/embedded-views" "$plugins_dir/wp-views/embedded"
+	wp plugin activate wp-views
+}
+
+
 
 # activate all toolset plugins
-alias toolset_activate='wp plugin activate types wp-views cred layouts'
+
+alias toolset_activate='wp plugin activate types wp-views cred layouts access'
 
 
 ###
@@ -106,16 +132,3 @@ On_White='\e[47m'       # White
 NC="\e[m"               # Color Reset
 
 ALERT=${BWhite}${On_Red} # Bold White on red background
-
-echo -e "${BCyan}This is BASH ${BRed}${BASH_VERSION%.*}${BCyan}\
- - DISPLAY on ${BRed}$DISPLAY${NC}\n"
-date
-if [ -x /usr/bin/fortune ]; then
-    /usr/bin/fortune      # Makes our day a bit more fun.... :-)
-fi
-
-function _exit()              # Function to run upon exit of shell.
-{
-    echo -e "${BRed}Hasta la vista, baby${NC}"
-}
-trap _exit EXIT

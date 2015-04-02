@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # bash_profile
 #
 # Symlinked to the vagrant user's home directory. This loads
@@ -38,3 +40,18 @@ eval "$(grunt --completion=bash)"
 
 # PHPCS path
 export PATH="$PATH:/srv/www/phpcs/scripts/"
+
+# say goodbye on exit of shell
+function _exit()
+{
+    echo -e "${BRed}Hasta la vista, baby${NC}"
+}
+trap _exit EXIT
+
+# finally, greet the user (now)
+echo -e "${BCyan}This is BASH ${BRed}${BASH_VERSION%.*}${BCyan}\
+ - DISPLAY on ${BRed}$DISPLAY${NC}\n"
+date
+if [ -x /usr/bin/fortune ]; then
+    /usr/bin/fortune      # Makes our day a bit more fun.... :-)
+fi
