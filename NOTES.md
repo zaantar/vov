@@ -1,5 +1,7 @@
 # git subtrees
 
+http://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/
+
 Initialize:
 
 1. git remote add -f riccardos-builder git@bitbucket.org:riccardos/builder.git
