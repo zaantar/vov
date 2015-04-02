@@ -637,6 +637,7 @@ for SITE_CONFIG_FILE in $(find /srv/www -maxdepth 5 -name 'vvv-init.sh'); do
 	(
 		cd "$DIR"
 		source vvv-init.sh
+		source /srv/config/vvv-init-after-each.sh
 	)
 done
 
