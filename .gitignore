@@ -62,4 +62,4 @@
 
 # Also include directories with custom sites with old WP versions.
 !/www/wp341
-!/www/wp351
+!/www/wp352
