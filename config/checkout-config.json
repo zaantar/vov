@@ -3,7 +3,7 @@
 		{
 			"name" : "Types",
 			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
+			"source" : "https://www.onthegosystems.com/misc_svn/cck/trunk/",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/types"
 		},
@@ -40,14 +40,14 @@
 			"type" : "svn",
 			"source" :	"https://www.onthegosystems.com/misc_svn/module_manager/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/module-manager"
+			"destination" : "wp-content/plugins/toolset-module-manager"
 		},
 		{
-			"name" : "Toolset Bootstrap 3 Theme",
+			"name" : "Toolset Bootstrap Theme",
 			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/bootstrap-theme/bootstrap-minimalistic/branches/bootstrap3-min",
+			"source" : "https://www.onthegosystems.com/misc_svn/bootstrap-theme/trunk/",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/themes/bs3-min"
+			"destination" : "wp-content/themes/toolset-bootstrap"
 		},
 		{
 			"name" : "WPML",
