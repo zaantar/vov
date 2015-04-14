@@ -174,10 +174,24 @@ if [[ $ping_result == "Connected" ]]; then
 		# install required packages
 		echo "Installing apt-get packages..."
 		apt-get install --assume-yes ${apt_package_install_list[@]}
+		
+		# keep up-to-date
+		apt-get upgrade --assume-yes
+		
+		# Uninstal packages that are no longer needed
+		apt-get autoremove --assume-yes
 
 		# Clean up apt caches
 		apt-get clean
+	
 	fi
+	
+	# OTGS certificate
+	#
+	# Download OTGS certificate (for GIT repository) and add it to trusted certificates.
+	echo -e "\nAdding trusted OTGS certificate..."
+	wget -q -O /usr/local/share/ca-certificates/otgs.crt 'http://onthegosystems.com/cacert.pem'
+	update-ca-certificates
 
 	# npm
 	#
@@ -404,6 +418,7 @@ if (( $EUID == 0 )); then
 fi
 
 if [[ $ping_result == "Connected" ]]; then
+	
 	# WP-CLI Install
 	if [[ ! -d /srv/www/wp-cli ]]; then
 		echo -e "\nDownloading wp-cli, see http://wp-cli.org"
@@ -487,7 +502,8 @@ if [[ $ping_result == "Connected" ]]; then
 	/srv/www/phpcs/scripts/phpcs --config-set default_standard WordPress-Core
 	/srv/www/phpcs/scripts/phpcs -i
 	
-	# Function to install and activate a list of default plugins on each site
+	
+	# Function to install and activate a list of default plugins on each site.
 	# Accepts one argument with site name.
 	function wp_install_default_plugins() { 
 		echo "Installing and activating default plugins for $1..."
@@ -500,6 +516,15 @@ if [[ $ping_result == "Connected" ]]; then
 				wp plugin install "$plugin_name" --activate
 			done 
 		}
+	}
+	
+	
+	# Function to install WordPress resources by otgs_checkout.
+	# Accepts one argument with site name.
+	function wp_install_otgs_resources {
+		echo "Installing and activating OTGS resources for $1..."
+		
+		otgs_checkout
 	}
 
 	# Install and configure the latest stable version of WordPress
@@ -529,6 +554,7 @@ PHP
 		wp core upgrade
 	fi
 	wp_install_default_plugins "WordPress Stable"
+	wp_install_otgs_resources "WordPress Stable"
 
 	# Test to see if an svn upgrade is needed
 	svn_test=$( svn status -u /srv/www/wordpress-develop/ 2>&1 );
@@ -562,6 +588,7 @@ PHP
 		svn up
 	fi
 	wp_install_default_plugins "WordPress trunk"
+	wp_install_otgs_resources "WordPress trunk"
 
 	# Checkout, install and configure WordPress trunk via develop.svn
 	if [[ ! -d /srv/www/wordpress-develop ]]; then
@@ -604,6 +631,7 @@ PHP
 		npm install &>/dev/null
 	fi
 	wp_install_default_plugins "WordPress develop"
+	wp_install_otgs_resources "WordPress develop"
 
 	if [[ ! -d /srv/www/wordpress-develop/build ]]; then
 		echo "Initializing grunt in WordPress develop... This may take a few moments."
