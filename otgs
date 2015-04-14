@@ -10,12 +10,52 @@ COLOUR_RESTORE='\033[0m'
 COLOUR_RED='\033[91m'
 
 
-function echo_w() {
+function echo_w {
     echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
 }
 
-function echo_y() {
+function echo_y {
     echo -e "$COLOUR_YELLOW$1$COLOUR_RESTORE"
+}
+
+
+# Ask user a yes/no question and insist on an answer.
+#
+# Return the result: 1 for yes, 0 for no.
+#
+# Arguments:
+# 	1. Question text
+#   2. Default result (when user just presses Enter): 0|1
+#	3. Variable name for return value
+function yes_no_question {
+	
+	local QUESTION_TEXT="$1"
+	local DEFAULT_RESULT="$2"
+	local RETURN_VARIABLE="$3"
+	
+	while true; do
+		read -p "$QUESTION_TEXT " yn
+		case $yn in
+			[Yy]* ) 
+				local RESULT="1"
+				break
+				;;
+			[Nn]* ) 
+				local RESULT="0" 
+				break
+				;;
+			"" )
+				local RESULT="$DEFAULT_RESULT"
+				break
+				;;
+			* ) 
+				echo "Please answer yes or no."
+				;;
+		esac
+	done
+	echo
+	
+	eval $RETURN_VARIABLE="'$RESULT'"
 }
 
 
@@ -29,42 +69,37 @@ function otgs_init {
 
 	# constants
 	CONFIG_HEADER='#\n# This is a generated file for custom modification of Vagrant options.\n# Do not change it manually, use the Customfile instead.\n#\n'
-	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"'
+	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"\n'
+	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
 
+	# user input
+	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
+	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
+	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 
-	while true; do
-		read -p "Do you want to use a 32bit box instead of 64bit? [y/N] " yn
-		case $yn in
-			[Yy]* ) IN_32BIT_BOX="1"; break;;
-			""|[Nn]* ) IN_32BIT_BOX="0"; break;;
-			* ) echo "Please answer yes or no.";;
-		esac
-	done
-	echo
-
-
-	while true; do
-		read -p "Ready to apply the customisations. Continue? [Y/n] " yn
-		case $yn in
-			""|[Yy]* ) break;;
-			[Nn]* ) exit;;
-			* ) echo "Please answer yes or no.";;
-		esac
-	done
-	echo
-
-
+	# exit if user doesn't want to continue
+	if [ "$IN_CONTINUE" == "0" ];
+	then
+		exit
+	fi
+	
 	# generate the OTGSfile
-
-
+	echo_w "Writing to OTGSfile..."
+	
 	echo -e "$CONFIG_HEADER" > OTGSfile
 
 	if [ "$IN_32BIT_BOX" == "1" ];
 	then
-		echo $CONFIG_32BIT_BOX >> OTGSfile
+		echo -e "$CONFIG_32BIT_BOX" >> OTGSfile
+	fi
+	
+	if [ "$IN_LOWMEM_BOX" == "1" ];
+	then
+		echo -e "$CONFIG_LOWMEM_BOX" >> OTGSfile
 	fi
 
 	echo_w "Finished."
+	echo
 }
 
 
