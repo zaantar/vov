@@ -1,0 +1,118 @@
+#!/bin/bash
+#
+# otgs_checkout
+#
+# Tool for obtaining WordPress resources like plugins and themes from user-defined repositories. Currently only SVN
+# is supported. Resources and possibly other settings are defined in config/checkout-config.json.
+#
+# This script relies heavily on jq and it is supposed to work in the Vagrant box.
+#
+# todo describe checkout-config structure
+# todo describe how credentials work
+# todo generate credentials in otgs init
+
+
+
+#
+# constants
+#
+
+CONFIG_FILE="/vagrant/config/checkout-config.json"
+CREDENTIALS_PATH="/vagrant/config/checkout-credentials/"
+
+
+
+#
+# functions
+#
+
+
+# Shortcut function to use jq on the config file.
+# First argument is the jq query.
+function jqc {
+	cat "$CONFIG_FILE" | jq --raw-output "$1"
+}
+
+
+# Shortcut function to get resource property.
+# First argument is resource index, second is the property name
+function jqcr {
+	jqc ".resources[$1].$2"
+}
+
+
+# Print path of the file with credentials for given server (first argument)
+function get_credentials_file {
+	echo "$CREDENTIALS_PATH$1"
+}
+
+
+# Read username from the credentials file (first argument)
+function get_username {
+	sed '1q;d' "$1"
+}
+
+
+function get_password {
+	sed '2q;d' "$1"
+}
+
+
+# SVN repository handler
+# Arguments:
+#	1. Resource index
+#	2. Source
+#	3. Destination
+function handle_svn_repository {
+	I=$1
+	RES_SOURCE="$2"
+	RES_DESTINATION="$3"
+		
+	RES_CREDENTIALS=`jqcr $I credentials`
+	CREDENTIALS_FILE=`get_credentials_file "$RES_CREDENTIALS"`
+	SVN_USER=`get_username "$CREDENTIALS_FILE"`
+	SVN_PASSWORD=`get_password "$CREDENTIALS_FILE"`
+	
+	echo "Performing SVN checkout as user $SVN_USER from $RES_SOURCE to $RES_DESTINATION..."
+	svn checkout --username "$SVN_USER" --password "$SVN_PASSWORD" "$RES_SOURCE" "$RES_DESTINATION"
+}
+
+
+
+#
+# main
+#
+
+echo "otgs_checkout starting"
+
+RESOURCE_COUNT=`jqc '.resources | length'`
+
+echo "Found $RESOURCE_COUNT resources."
+
+# loop through the resources.
+I=0
+while [ $I -lt $RESOURCE_COUNT ]; do
+
+	# read resource parameters
+	RES_NAME=`jqcr $I name`
+	RES_TYPE=`jqcr $I type`
+	RES_SOURCE=`jqcr $I source`
+	RES_DESTINATION=`jqcr $I destination`
+
+	echo "Processing $RES_TYPE repository for $RES_NAME..."
+
+	case $RES_TYPE in
+		svn)
+			handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+			;;
+		*)
+			echo "Repository type not supported."
+			;;
+	esac
+
+	echo ""
+	
+	let I=I+1
+done
+
+echo "Finished."

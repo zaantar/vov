@@ -35,6 +35,9 @@
 # No need to share our mysql data with each other
 /database/data/*
 
+# We definitely don't want to store any repository credentials
+/config/checkout-credentials/*
+
 # Log files should be ignored.
 /log/*.log
 

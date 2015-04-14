@@ -1,0 +1,57 @@
+{
+	"resources": [
+		{
+			"name" : "Types",
+			"type" : "svn",
+			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/types"
+		},
+		{
+			"name" : "Views",
+			"type" : "svn", 
+			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/wp-views"
+		},
+		{
+			"name" : "CRED",
+			"type" : "svn",
+			"source" : "https://www.onthegosystems.com/misc_svn/crud/trunk_new",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/cred-frontend-editor"
+		},
+		{
+			"name" : "Layouts",
+			"type" : "svn",
+			"source" : "https://www.onthegosystems.com/misc_svn/layouts/core/trunk",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/layouts"
+		},
+		{
+			"name" : "Access",
+			"type" : "svn",
+			"source" : "https://www.onthegosystems.com/misc_svn/types-access/trunk",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/types-access"
+		},
+		{
+			"name" : "Module Manager",
+			"type" : "svn",
+			"source" :	"https://www.onthegosystems.com/misc_svn/module_manager/trunk",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/plugins/module-manager"
+		},
+		{
+			"name" : "Toolset Bootstrap 3 Theme",
+			"type" : "svn",
+			"source" : "https://www.onthegosystems.com/misc_svn/bootstrap-theme/bootstrap-minimalistic/branches/bootstrap3-min",
+			"credentials" : "onthegosystems_com_misc_svn",
+			"destination" : "wp-content/themes/bs3-min"
+		},
+		{
+			"name" : "WPML",
+			"type" : "git"
+		}
+	]
+}
