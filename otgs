@@ -53,7 +53,6 @@ function yes_no_question {
 				;;
 		esac
 	done
-	echo
 	
 	eval $RETURN_VARIABLE="'$RESULT'"
 }
@@ -71,11 +70,15 @@ function otgs_init {
 	CONFIG_HEADER='#\n# This is a generated file for custom modification of Vagrant options.\n# Do not change it manually, use the Customfile instead.\n#\n'
 	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"\n'
 	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
+	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
+	read -p "Enter SVN user name for onthegosystems.com/misc_svn: " IN_SVN_USERNAME
+	read -s -p "Enter SVN password for onthegosystems.com/misc_svn: " IN_SVN_PASSWORD; echo
+	
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 
 	# exit if user doesn't want to continue
@@ -84,6 +87,7 @@ function otgs_init {
 		exit
 	fi
 	
+	
 	# install vagrant plugins
 	if [ "$IN_VAGRANT_PLUGINS" == "1" ];
 	then
@@ -91,6 +95,13 @@ function otgs_init {
 		vagrant plugin install vagrant-hostsupdater
 		vagrant plugin install vagrant-triggers
 	fi
+	
+	
+	# write SVN credentials into the appropriate file
+	echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
+	
+	echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
+	
 	
 	# generate the OTGSfile
 	echo_w "Writing to OTGSfile..."
