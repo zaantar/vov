@@ -1,20 +1,3 @@
 # VVV for OTGS
 
-Under development. When this project becomes at least partially usable, I will announce it.
-
-## List of ideas
-
-TODOs and ideas that need further investigation.
-
-- Add Riccardo's checkout tool
-    - create docs for it (perhaps Riccardo can help)
-- Checkout (clone) WPML, too
-- Also integrate boxes for older PHP versions from https://github.com/tierra/wp-vagrant
-    - add proper provisioning
-- shortcut shell scripts for commands that need to be run inside vagrant box
-- shortcuts to update everything from trunk
-- bash aliases
-    - wp cli: activate all toolset plugins and theme
-    - the usual linux hacks
-- proper documentation
-- script to generate Customfile that will turn the VVV into 32bit
+Visit [main project Wiki page](https://git.onthegosystems.com/jan/vvv-for-otgs/wikis/home) for more information.
