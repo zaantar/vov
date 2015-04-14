@@ -75,12 +75,21 @@ function otgs_init {
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
+	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 
 	# exit if user doesn't want to continue
 	if [ "$IN_CONTINUE" == "0" ];
 	then
 		exit
+	fi
+	
+	# install vagrant plugins
+	if [ "$IN_VAGRANT_PLUGINS" == "1" ];
+	then
+		echo_w "Attempting to install Vagrant plugins..."
+		vagrant plugin install vagrant-hostsupdater
+		vagrant plugin install vagrant-triggers
 	fi
 	
 	# generate the OTGSfile
