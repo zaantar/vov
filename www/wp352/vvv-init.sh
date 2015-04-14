@@ -11,8 +11,7 @@ define('WP_DEBUG_LOG', true);
 PHP
 	wp core install --url=wp352.wordpress.dev --title="wp352" --admin_user=admin --admin_password=password --admin_email=admin@localhost.dev --allow-root
 	
-	
-  
+	otgs_checkout 
 	
 	cd -
 
