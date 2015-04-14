@@ -105,6 +105,7 @@ apt_package_check_list=(
 	ack-grep
 	colordiff
 	fortune
+	jq
 )
 
 echo "Check for apt packages to install..."
@@ -495,6 +496,7 @@ if [[ $ping_result == "Connected" ]]; then
 		grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
 			# Iterate through all plugin names
 			while read plugin_name; do
+				echo "Installing $plugin_name..."
 				wp plugin install "$plugin_name" --activate
 			done 
 		}
