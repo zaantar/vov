@@ -524,7 +524,7 @@ if [[ $ping_result == "Connected" ]]; then
 	function wp_install_otgs_resources {
 		echo "Installing and activating OTGS resources for $1..."
 		
-		otgs_checkout
+		/vagrant/provision/otgs_checkout
 	}
 
 	# Install and configure the latest stable version of WordPress
