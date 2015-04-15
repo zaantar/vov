@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# otgs_checkout
+# vov_checkout
 #
 # Tool for obtaining WordPress resources like plugins and themes from user-defined repositories. Currently only SVN
 # is supported. Resources and possibly other settings are defined in config/checkout-config.json.
@@ -83,7 +83,8 @@ function handle_svn_repository {
 # main
 #
 
-echo "otgs_checkout starting"
+echo "vov_checkout starting..."
+echo "                                ... just VOV!"
 
 RESOURCE_COUNT=`jqc '.resources | length'`
 
@@ -115,4 +116,4 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	let I=I+1
 done
 
-echo "Finished."
+echo "vov_checkout finished."

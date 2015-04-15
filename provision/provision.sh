@@ -100,12 +100,15 @@ apt_package_check_list=(
 	g++
 	nodejs
 
-	# otgs additions
-	htop
-	ack-grep
-	colordiff
+
+	#
+	# VOV additions
+	#
+	htop # interactive process viewer (better than top)
+	ack-grep # grep-like text finder
+	colordiff # a tool to colorize diff output
 	fortune
-	jq
+	jq # parsing and querying JSON, used by vov_checkout
 )
 
 echo "Check for apt packages to install..."
@@ -519,12 +522,12 @@ if [[ $ping_result == "Connected" ]]; then
 	}
 	
 	
-	# Function to install WordPress resources by otgs_checkout.
+	# Function to install WordPress resources by vov_checkout.
 	# Accepts one argument with site name.
 	function wp_install_otgs_resources {
 		echo "Installing and activating OTGS resources for $1..."
 		
-		/vagrant/provision/otgs_checkout
+		/vagrant/provision/vov_checkout
 	}
 
 	# Install and configure the latest stable version of WordPress

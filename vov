@@ -59,12 +59,12 @@ function yes_no_question {
 
 
 ###
-### otgs init
+### vov init
 ###
 
 # todo install vagrant plugins (add option to disable this)
 
-function otgs_init {
+function vov_init {
 
 	# constants
 	CONFIG_HEADER='#\n# This is a generated file for custom modification of Vagrant options.\n# Do not change it manually, use the Customfile instead.\n#\n'
@@ -103,19 +103,19 @@ function otgs_init {
 	echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
 	
 	
-	# generate the OTGSfile
-	echo_w "Writing to OTGSfile..."
+	# generate the VOVfile
+	echo_w "Writing to VOVfile..."
 	
-	echo -e "$CONFIG_HEADER" > OTGSfile
+	echo -e "$CONFIG_HEADER" > VOVfile
 
 	if [ "$IN_32BIT_BOX" == "1" ];
 	then
-		echo -e "$CONFIG_32BIT_BOX" >> OTGSfile
+		echo -e "$CONFIG_32BIT_BOX" >> VOVfile
 	fi
 	
 	if [ "$IN_LOWMEM_BOX" == "1" ];
 	then
-		echo -e "$CONFIG_LOWMEM_BOX" >> OTGSfile
+		echo -e "$CONFIG_LOWMEM_BOX" >> VOVfile
 	fi
 
 	echo_w "Finished."
@@ -124,11 +124,11 @@ function otgs_init {
 
 
 ###
-### otgs create site
+### vov create site
 ###
 
 # TODO validate input
-function otgs_create_site {
+function vov_create_site {
 
 	SITE_NAME="$1"
 	SITE_DOMAIN="$1.wordpress.dev"
@@ -146,10 +146,8 @@ function otgs_create_site {
 ###
 
 echo
-echo_y "#==============================================================================#"
-echo_y "|                              vvv-for-otgs                                    |"
-echo_y "#==============================================================================#"
-echo
+echo_y "                               VOV!"
+echo_y "                                        ...just VOV."
 
 
 # parse input and execute the right action
@@ -161,7 +159,7 @@ IN_ACTION="$1"
 case "$IN_ACTION" in
     init)
 		shift
-		otgs_init
+		vov_init
 		;;
 		
 	site)
@@ -170,7 +168,7 @@ case "$IN_ACTION" in
 		IN_SITE_NAME="$2"
 		case "$IN_SITE_ACTION" in
 			create)
-				otgs_create_site "$IN_SITE_NAME"
+				vov_create_site "$IN_SITE_NAME"
 				;;
 			delete)
 				;;
