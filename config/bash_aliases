@@ -33,7 +33,9 @@ alias chownr='chown -R'
 ###
 
 alias cdwp='cd /srv/www/wordpress-default'
-
+alias cdp='cd wp-content/plugins'
+alias cdt='cd wp-content/themes'
+alias cdwpp='cdwp && cdp'
 
 ###
 ### ack
@@ -49,8 +51,12 @@ alias ack='cuthere; ack-grep'
 
 # i never remember this one
 alias colourdiff='colordiff'
-alias svndiff='svn diff | colourdiff'
+
+# too long!
 alias svnlog='svn log | head -n 50'
+
+# too gray!
+alias svndiff='svn diff | colourdiff'
 
 
 ###
@@ -86,7 +92,7 @@ function views_full {
 
 # activate all toolset plugins
 
-alias toolset_activate='wp plugin activate types wp-views cred layouts access'
+alias toolset_activate='wp plugin activate types wp-views cred-frontend-editor layouts types-access'
 
 
 ###
