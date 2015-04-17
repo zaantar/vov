@@ -8,7 +8,7 @@
 
 # These are files intended for hooking in a custom Vagrant configuration on up
 /Customfile
-/OTGSfile
+/VOVfile
 
 # This is just a backup of the Vagrantfile
 /Vagrantfile-backup

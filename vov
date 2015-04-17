@@ -70,16 +70,20 @@ function vov_init {
 	CONFIG_HEADER='#\n# This is a generated file for custom modification of Vagrant options.\n# Do not change it manually, use the Customfile instead.\n#\n'
 	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"\n'
 	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
+	CONFIG_TWO_CPUS='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--cpus", 2]\nend\n'
 	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
+	yes_no_question "Should the box have two CPU cores instead of one? [y/N]" 0 IN_TWO_CPUS
+	
 	read -p "Enter SVN user name for onthegosystems.com/misc_svn: " IN_SVN_USERNAME
 	read -s -p "Enter SVN password for onthegosystems.com/misc_svn: " IN_SVN_PASSWORD; echo
 	
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
+	echo
 
 	# exit if user doesn't want to continue
 	if [ "$IN_CONTINUE" == "0" ];
@@ -118,7 +122,14 @@ function vov_init {
 		echo -e "$CONFIG_LOWMEM_BOX" >> VOVfile
 	fi
 
+	if [ "$IN_TWO_CPUS" == "1" ];
+	then
+		echo -e "$CONFIG_TWO_CPUS" >> VOVfile
+	fi
+
 	echo_w "Finished."
+	echo
+	echo_w "Now you are ready to run VOV with command:$COLOUR_YELLOW vagrant up"
 	echo
 }
 
@@ -148,7 +159,7 @@ function vov_create_site {
 echo
 echo_y "                               VOV!"
 echo_y "                                        ...just VOV."
-
+echo
 
 # parse input and execute the right action
 
