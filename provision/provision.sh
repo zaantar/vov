@@ -352,6 +352,13 @@ if [[ -f /srv/config/bash_prompt ]]; then
 	echo " * Copied /srv/config/bash_prompt                       to /home/vagrant/.bash_prompt"
 fi
 
+# Update sshd configuration.
+#
+# Disable the AcceptEnv settings
+echo -e "\nFix sshd configuration..."
+
+sed -i '/AcceptEnv/c\#AcceptEnv' /etc/ssh/sshd_config
+
 # RESTART SERVICES
 #
 # Make sure the services we expect to be running are running.
