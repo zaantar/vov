@@ -109,6 +109,7 @@ apt_package_check_list=(
 	colordiff # a tool to colorize diff output
 	fortune
 	jq # parsing and querying JSON, used by vov_checkout
+	figlet # text banners in terminal
 )
 
 echo "Check for apt packages to install..."

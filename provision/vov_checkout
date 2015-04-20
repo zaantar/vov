@@ -104,8 +104,9 @@ function handle_git_repository {
 # main
 #
 
+figlet -cf slant VOV
+echo
 echo "vov_checkout starting..."
-echo "                                ... just VOV!"
 
 RESOURCE_COUNT=`jqc '.resources | length'`
 

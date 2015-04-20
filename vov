@@ -165,8 +165,13 @@ function vov_create_site {
 ###
 
 echo
-echo_y "                               VOV!"
-echo_y "                                        ...just VOV."
+echo_y "                                _    ______ _    __"
+echo_y "                               | |  / / __ \ |  / /"
+echo_y "                               | | / / / / / | / / "
+echo_y "                               | |/ / /_/ /| |/ /  "
+echo_y "                               |___/\____/ |___/   "
+echo
+echo_y "                                                    ...just VOV!"
 echo
 
 # parse input and execute the right action

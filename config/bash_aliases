@@ -138,3 +138,5 @@ On_White='\e[47m'       # White
 NC="\e[m"               # Color Reset
 
 ALERT=${BWhite}${On_Red} # Bold White on red background
+
+alias say_vov='figlet -cf slant VOV'
