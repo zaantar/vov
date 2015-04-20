@@ -5,7 +5,7 @@
 ###
 COLOUR_BTW='\033[90m'
 COLOUR_WHITE='\033[01;37m'
-COLOUR_YELLOW='\e[1;33m'
+COLOUR_YELLOW='\033[01;33m'
 COLOUR_RESTORE='\033[0m'
 COLOUR_RED='\033[91m'
 
@@ -72,6 +72,7 @@ function vov_init {
 	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
 	CONFIG_TWO_CPUS='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--cpus", 2]\nend\n'
 	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
+	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
 
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
@@ -81,7 +82,10 @@ function vov_init {
 	
 	read -p "Enter SVN user name for onthegosystems.com/misc_svn: " IN_SVN_USERNAME
 	read -s -p "Enter SVN password for onthegosystems.com/misc_svn: " IN_SVN_PASSWORD; echo
-	
+
+	read -p "Enter GIT user name for git.onthegosystems.com: " IN_GITLAB_USERNAME
+	read -s -p "Enter SVN password for git.onthegosystems.com: " IN_GITLAB_PASSWORD; echo
+		
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 	echo
 
@@ -105,7 +109,11 @@ function vov_init {
 	echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
 	
 	echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
-	
+
+	# write Gitlab credentials
+	echo_w "Saving GIT credentials for git.onthegosystems.com..."
+
+	echo -e "$IN_GITLAB_USERNAME\n$IN_GITLAB_PASSWORD" > $GITLAB_CREDENTIALS_FILE
 	
 	# generate the VOVfile
 	echo_w "Writing to VOVfile..."
@@ -157,8 +165,13 @@ function vov_create_site {
 ###
 
 echo
-echo_y "                               VOV!"
-echo_y "                                        ...just VOV."
+echo_y "                                _    ______ _    __"
+echo_y "                               | |  / / __ \ |  / /"
+echo_y "                               | | / / / / / | / / "
+echo_y "                               | |/ / /_/ /| |/ /  "
+echo_y "                               |___/\____/ |___/   "
+echo
+echo_y "                                                    ...just VOV!"
 echo
 
 # parse input and execute the right action

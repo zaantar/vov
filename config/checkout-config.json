@@ -5,42 +5,48 @@
 			"type" : "svn",
 			"source" : "https://www.onthegosystems.com/misc_svn/cck/trunk/",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/types"
+			"destination" : "wp-content/plugins/types",
+			"afterwards" : "wp --allow-root plugin activate types"
 		},
 		{
 			"name" : "Views",
 			"type" : "svn", 
 			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/wp-views"
+			"destination" : "wp-content/plugins/wp-views",
+			"afterwards" : "wp --allow-root plugin activate wp-views"
 		},
 		{
 			"name" : "CRED",
 			"type" : "svn",
 			"source" : "https://www.onthegosystems.com/misc_svn/crud/trunk_new",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/cred-frontend-editor"
+			"destination" : "wp-content/plugins/cred-frontend-editor",
+			"afterwards" : "wp --allow-root plugin activate cred-frontend-editor"
 		},
 		{
 			"name" : "Layouts",
 			"type" : "svn",
 			"source" : "https://www.onthegosystems.com/misc_svn/layouts/core/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/layouts"
+			"destination" : "wp-content/plugins/layouts",
+			"afterwards" : "wp --allow-root plugin activate layouts"
 		},
 		{
 			"name" : "Access",
 			"type" : "svn",
 			"source" : "https://www.onthegosystems.com/misc_svn/types-access/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/types-access"
+			"destination" : "wp-content/plugins/types-access",
+			"afterwards" : "wp --allow-root plugin activate types-access"
 		},
 		{
 			"name" : "Module Manager",
 			"type" : "svn",
 			"source" :	"https://www.onthegosystems.com/misc_svn/module_manager/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/plugins/toolset-module-manager"
+			"destination" : "wp-content/plugins/toolset-module-manager",
+			"afterwards" : "wp --allow-root plugin activate toolset-module-manager"
 		},
 		{
 			"name" : "Toolset Bootstrap Theme",
@@ -50,8 +56,12 @@
 			"destination" : "wp-content/themes/toolset-bootstrap"
 		},
 		{
-			"name" : "WPML",
-			"type" : "git"
+			"name" : "SitePress Multilingual CMS",
+			"type" : "git",
+			"source" : "git.onthegosystems.com/wpml/sitepress-multilingual-cms.git",
+			"credentials" : "git_onthegosystems_com",
+			"destination" : "wp-content/plugins/sitepress-multilingual-cms",
+			"afterwards" : "wp --allow-root plugin activate sitepress-multilingual-cms"
 		}
 	]
 }
