@@ -58,6 +58,60 @@ function yes_no_question {
 }
 
 
+# Ask user for credentials.
+#
+# Allows to skip answering on empty input.
+#
+# Arguments:
+#	1. Question text.
+#	2. Additional description.
+#	3. Return variable that will be set to 1 when user provides input
+#      and to 0 otherwise.
+#	4. Return variable for username
+#	5. Return variable for password
+function prompt_for_credentials {
+
+	local QUESTION_TEXT="$1"
+	local DESCRIPTION_TEXT="$2"
+	local RET_RESULT="$3"
+	local RET_USERNAME="$4"
+	local RET_PASSWORD="$5"
+
+	echo_w "$QUESTION_TEXT"
+	echo -e "$DESCRIPTION_TEXT"
+	echo
+
+	read -p "User name: " PFC_IN_USERNAME
+
+	if [ -z "$PFC_IN_USERNAME" ]; then
+		eval $RET_RESULT=0
+		return 0
+	else
+		eval $RET_RESULT=1
+		eval $RET_USERNAME="\"$PFC_IN_USERNAME\""
+	fi
+
+	local PASSWORD_FIRST=""
+	local PASSWORD_SECOND=""
+	local PASSWORDS_MATCH=0
+
+	until [ $PASSWORDS_MATCH == 1 ]; do
+		read -s -p "Password: " PASSWORD_FIRST; echo
+		read -s -p "Repeat password: " PASSWORD_SECOND; echo
+
+		echo
+		
+		if [ "$PASSWORD_FIRST" == "$PASSWORD_SECOND" ]; then
+			PASSWORDS_MATCH=1
+		else
+			echo "Passwords don't match. Please repeat."
+		fi
+	done
+
+	eval $RET_PASSWORD="\"$PASSWORD_FIRST\""
+}
+
+
 function fix_permissions {
 	EXECUTABLE_FILES=(
 		config/homebin/*
@@ -69,6 +123,25 @@ function fix_permissions {
 	for FILE in "${EXECUTABLE_FILES[@]}"; do
 		chmod +x "$FILE"
 	done
+}
+
+
+# urlencode for git credentials
+# http://stackoverflow.com/a/10660730
+function rawurlencode {
+  local string="${1}"
+  local strlen=${#string}
+  local encoded=""
+
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+     c=${string:$pos:1}
+     case "$c" in
+        [-_.~a-zA-Z0-9] ) o="${c}" ;;
+        * )               printf -v o '%%%02x' "'$c"
+     esac
+     encoded+="${o}"
+  done
+  echo "${encoded}"
 }
 
 
@@ -93,12 +166,10 @@ function vov_init {
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
 	yes_no_question "Should the box have two CPU cores instead of one? [y/N]" 0 IN_TWO_CPUS
-	
-	read -p "Enter SVN user name for onthegosystems.com/misc_svn: " IN_SVN_USERNAME
-	read -s -p "Enter SVN password for onthegosystems.com/misc_svn: " IN_SVN_PASSWORD; echo
 
-	read -p "Enter GIT user name for git.onthegosystems.com: " IN_GITLAB_USERNAME
-	read -s -p "Enter SVN password for git.onthegosystems.com: " IN_GITLAB_PASSWORD; echo
+	prompt_for_credentials "Please enter SVN credentials for onthegosystems.com/misc_svn:" "Press only Enter to skip this step." IN_IS_SVN IN_SVN_USERNAME IN_SVN_PASSWORD
+
+	prompt_for_credentials "Please enter GIT credentials for git.onthegosystems.com:" "Press only Enter to skip this step." IN_IS_GIT IN_GITLAB_USERNAME IN_GITLAB_PASSWORD
 		
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 	echo
@@ -120,14 +191,18 @@ function vov_init {
 	
 	
 	# write SVN credentials into the appropriate file
-	echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
-	
-	echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
+	if [ $IN_IS_SVN == 1 ]; then
+		echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
+		echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
+	fi
 
 	# write Gitlab credentials
-	echo_w "Saving GIT credentials for git.onthegosystems.com..."
-
-	echo -e "$IN_GITLAB_USERNAME\n$IN_GITLAB_PASSWORD" > $GITLAB_CREDENTIALS_FILE
+	if [ $IN_IS_GIT == 1 ]; then
+		echo_w "Saving GIT credentials for git.onthegosystems.com..."
+		IN_GITLAB_USERNAME=$( rawurlencode "$IN_GITLAB_USERNAME" )
+		IN_GITLAB_PASSWORD=$( rawurlencode "$IN_GITLAB_PASSWORD" )
+		echo -e "$IN_GITLAB_USERNAME\n$IN_GITLAB_PASSWORD" > $GITLAB_CREDENTIALS_FILE
+	fi
 	
 	# generate the VOVfile
 	echo_w "Writing to VOVfile..."
@@ -223,4 +298,3 @@ case "$IN_ACTION" in
 		echo_w "Unknown action. Specify 'init' or 'site'."
 		;;
 esac
-
