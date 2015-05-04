@@ -58,6 +58,20 @@ function yes_no_question {
 }
 
 
+function fix_permissions {
+	EXECUTABLE_FILES=(
+		config/homebin/*
+		config/vvv-init-after-each.sh
+		database/import-sql.sh
+		provision/*
+	)
+
+	for FILE in "${EXECUTABLE_FILES[@]}"; do
+		chmod +x "$FILE"
+	done
+}
+
+
 ###
 ### vov init
 ###
@@ -134,6 +148,10 @@ function vov_init {
 	then
 		echo -e "$CONFIG_TWO_CPUS" >> VOVfile
 	fi
+
+	# fix permissions for scripts
+	echo_w "Fixing permissions for executable files..."
+	fix_permissions
 
 	echo_w "Finished."
 	echo
