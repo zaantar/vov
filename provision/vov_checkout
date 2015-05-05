@@ -124,23 +124,28 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 
 	echo "Processing $RES_TYPE repository for $RES_NAME..."
 
-	case $RES_TYPE in
-		svn)
-			handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION"
-			;;
-		git)
-			handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION"
-			;;
-		*)
-			echo "Repository type not supported."
-			;;
-	esac
+	if [ -d "$RES_DESTINATION" ]; then
+		echo "Destination already exists. Skipping."
+	else
+		case $RES_TYPE in
+			svn)
+				handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+				;;
+			git)
+				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+				;;
+			*)
+				echo "Repository type not supported."
+				;;
+		esac
 
-	RES_AFTERWARDS=`jqcr $I afterwards`
-	if [ -n "$RES_AFTERWARDS" ];
-	then
-		echo "Running command afterwards: $RES_AFTERWARDS"
-		eval $RES_AFTERWARDS
+		RES_AFTERWARDS=`jqcr $I afterwards`
+		if [ -n "$RES_AFTERWARDS" ]; then
+			if [ "$RES_AFTERWARDS" != "null" ]; then
+				echo "Running command afterwards: $RES_AFTERWARDS"
+				eval $RES_AFTERWARDS
+			fi
+		fi
 	fi
 
 	echo ""
