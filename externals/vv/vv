@@ -333,9 +333,13 @@ load_config_autopdate_config_values() {
 	#Load path from config file
 	auto_update_disable_config="$( getJsonVal "['auto_update_disable']" < ~/.vv-config )"
 	auto_update_disable_config="$(echo "$auto_update_disable_config" | sed -e 's/^"//'  -e 's/"$//')"
-	if [[ $auto_update_disable_config = "true" ]]; then
-		auto_update_disable="true"
-	fi
+
+	# VOV modification: We want to keep the autoupdate disabled at all times so that our modifications
+	# don't get overwritten.
+
+	#if [[ $auto_update_disable_config = "true" ]]; then
+	auto_update_disable="true"
+	#fi
 }
 
 load_default_values() {
@@ -731,6 +735,13 @@ PHP"
 				echo "	cd ./$web_root"
 				echo "	$db_init"
 				echo "	"
+				echo "  /vagrant/provision/vov_checkout"
+
+				if [ $vov_is_bundle == 1 ]; then
+					echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
+				fi
+				
+				echo "  "
 				echo "	cd -"
 				echo "$blueprint_text"
 				echo "fi"
@@ -1322,6 +1333,17 @@ check_args() {
 				wpskeleton="true"
 				shift
 				;;
+
+			# custom VOV arguments
+			--bundle)
+				argument_expected "$1" "$2"
+				argument_expected "$1" "$3"
+				vov_is_bundle=1
+				vov_bundle="$2"
+				vov_bundle_version="$3"
+				shift 3				
+				;;
+				
 			*)
 				fail "Unknown option $1"
 				shift
@@ -1352,6 +1374,10 @@ main() {
 	no_wp="false"
 	no_wp_with_db="false"
 	sites_folder="www"
+
+	# custom VOV arguments (defaults)
+	vov_is_bundle=0
+	
 	check_args "$@"
 
 }
