@@ -49,13 +49,6 @@
 			"afterwards" : "wp --allow-root plugin activate toolset-module-manager"
 		},
 		{
-			"name" : "Toolset Bootstrap Theme",
-			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/bootstrap-theme/trunk/",
-			"credentials" : "onthegosystems_com_misc_svn",
-			"destination" : "wp-content/themes/toolset-bootstrap"
-		},
-		{
 			"name" : "SitePress Multilingual CMS",
 			"type" : "git",
 			"source" : "git.onthegosystems.com/wpml/sitepress-multilingual-cms.git",
