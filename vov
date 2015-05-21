@@ -9,7 +9,7 @@ COLOUR_YELLOW='\033[01;33m'
 COLOUR_RESTORE='\033[0m'
 COLOUR_RED='\033[91m'
 
-
+                          
 function echo_w {
     echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
 }
@@ -74,6 +74,12 @@ function vov_init {
 	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
 
+  IS_CYGWIN=0
+  if [ `uname -o` == "Cygwin" ]; then
+    echo "Cygwin detected. Welcome, Windows user!"
+    IS_CYGWIN=1
+  fi
+    
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
@@ -100,8 +106,10 @@ function vov_init {
 	if [ "$IN_VAGRANT_PLUGINS" == "1" ];
 	then
 		echo_w "Attempting to install Vagrant plugins..."
-		vagrant plugin install vagrant-hostsupdater
+    
+    vagrant plugin install vagrant-hostsupdater
 		vagrant plugin install vagrant-triggers
+
 	fi
 	
 	
