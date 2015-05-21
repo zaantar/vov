@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VOV_VERSION='0.1'
+VOV_VERSION='0.1-dev'
 
 ###
 ### terminal output formatting
