@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VOV_VERSION='0.1'
+
 ###
 ### terminal output formatting
 ###
@@ -235,19 +237,54 @@ function vov_init {
 }
 
 
+
+
 ###
 ### vov create site
 ###
 
-# TODO validate input
 function vov_create_site {
-
+	
 	SITE_NAME="$1"
-	SITE_DOMAIN="$1.wordpress.dev"
+	shift
+	SITE_DOMAIN="$SITE_NAME.wordpress.dev"
 
+	# Very basic input validation
+	SITE_CHECK=$( rawurlencode "$SITE_NAME" )
+	if [ "$SITE_NAME" != "$SITE_CHECK" ]; then
+		echo_w "'$SITE_NAME' is not a valid site name."
+		return
+	fi
+
+	SITE_ARGS="--name \"$SITE_NAME\" --domain \"$SITE_DOMAIN\" --debug"
+
+	# Defaults
+	IS_BUNDLE_SITE=0 # If 1, this is a site with a bundle checkout
+	BUNDLE_VERSION=0
+	
+	# Parse additional commandline parameters
+
+	OPTIND=1
+	while [ ! -z "$1" ]; do
+		case "$1" in
+		--bundle)
+			IS_BUNDLE_SITE=1
+			BUNDLE_NAME="$2"
+			BUNDLE_VERSION="$3"
+			shift 3
+			;;
+		esac
+	done
+
+	if [ $IS_BUNDLE_SITE == 1 ]; then
+		BUNDLE_ARGS="--bundle \"$BUNDLE_NAME\" \"$BUNDLE_VERSION\""
+	else
+		BUNDLE_ARGS=""
+	fi
+
+	# Run the VV utility
 	echo_w "Running vv..."
-
-	externals/vv/vv create --name "$SITE_NAME" --domain "$SITE_DOMAIN" --debug
+	externals/vv/vv create $SITE_ARGS $BUNDLE_ARGS
 
 	echo_w "vv finished."
 }
@@ -274,19 +311,34 @@ echo
 IN_ACTION="$1"
 
 case "$IN_ACTION" in
+
+	version)
+		echo
+		echo_w "VOV version is $VOV_VERSION".
+		echo
+		;;
+
     init)
 		shift
 		vov_init
 		;;
-		
+
+	# operation on a site
 	site)
 		shift
 		IN_SITE_ACTION="$1"
 		IN_SITE_NAME="$2"
 		case "$IN_SITE_ACTION" in
+
+			# create a site
 			create)
-				vov_create_site "$IN_SITE_NAME"
+
+				# first two arguments processed, rest will be passed to vov_create_site
+				shift 2 
+				vov_create_site "$IN_SITE_NAME" "$@"
+				
 				;;
+				
 			delete)
 				;;
 			*)
