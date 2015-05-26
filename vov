@@ -345,20 +345,28 @@ case "$IN_ACTION" in
 	# bothered by vagrant-hostsupdater anymore
 	
 	up)
+		shift
 		run_sudo
-		vagrant up
+		vagrant up "$@"
 		;;
 
 	suspend)
+		shift
 		run_sudo
-		vagrant suspend
+		vagrant suspend "$@"
 		;;
 
 	halt)
+		shift
 		run_sudo
-		vagrant halt
+		vagrant halt "$@"
 		;;
-		
+
+	destroy)
+		shift
+		run_sudo
+		vagrant destroy "$@"
+		;;
 
 	# operation on a site
 	site)
