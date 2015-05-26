@@ -128,6 +128,11 @@ function fix_permissions {
 }
 
 
+function run_sudo {
+	sudo echo "Superuser privileges granted"
+}
+
+
 # urlencode for git credentials
 # http://stackoverflow.com/a/10660730
 function rawurlencode {
@@ -332,6 +337,26 @@ case "$IN_ACTION" in
 		shift
 		vov_init
 		;;
+
+	# run vagrant commands but invoke sudo first
+	# so the user can enter their password immediately and is not
+	# bothered by vagrant-hostsupdater anymore
+	
+	up)
+		run_sudo
+		vagrant up
+		;;
+
+	suspend)
+		run_sudo
+		vagrant suspend
+		;;
+
+	halt)
+		run_sudo
+		vagrant halt
+		;;
+		
 
 	# operation on a site
 	site)
