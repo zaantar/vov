@@ -785,6 +785,14 @@ PHP"
 			echo "	$add_placeholder_content"
 			echo "	$db_init"
 			echo "  $maybe_remove_defaults"
+
+			echo "	"
+			echo "  /vagrant/provision/vov_checkout"
+
+			if [ $vov_is_bundle == 1 ]; then
+				echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
+			fi
+			
 			echo "	"
 			echo "	cd -"
 			echo "$blueprint_text"
