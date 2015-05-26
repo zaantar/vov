@@ -295,6 +295,8 @@ function vov_create_site {
 		BUNDLE_ARGS=""
 	fi
 
+	run_sudo
+
 	# Run the VV utility
 	echo_w "Running vv..."
 	echo "SITE_ARGS=$SITE_ARGS"
