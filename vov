@@ -253,7 +253,7 @@ function vov_init {
 
 function vov_create_site {
 	
-	SITE_NAME="$1"
+	SITE_NAME=$1
 	shift
 	SITE_DOMAIN="$SITE_NAME.wordpress.dev"
 
@@ -264,7 +264,7 @@ function vov_create_site {
 		return
 	fi
 
-	SITE_ARGS="--name \"$SITE_NAME\" --domain \"$SITE_DOMAIN\" --debug"
+	SITE_ARGS="--name $SITE_NAME --domain $SITE_DOMAIN --debug"
 
 	# Defaults
 	IS_BUNDLE_SITE=0 # If 1, this is a site with a bundle checkout
@@ -292,6 +292,8 @@ function vov_create_site {
 
 	# Run the VV utility
 	echo_w "Running vv..."
+	echo "SITE_ARGS=$SITE_ARGS"
+	echo "BUNDLE_ARGS=$BUNDLE_ARGS"
 	externals/vv/vv create $SITE_ARGS $BUNDLE_ARGS
 
 	echo_w "vv finished."
