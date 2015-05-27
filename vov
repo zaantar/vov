@@ -314,10 +314,23 @@ function vov_create_site {
 
 	# Run the VV utility
 	echo_w "Running vv..."
-	echo "SITE_ARGS=$SITE_ARGS"
-	echo "BUNDLE_ARGS=$BUNDLE_ARGS"
 	externals/vv/vv create $SITE_ARGS $BUNDLE_ARGS
+	echo_w "vv finished."
+}
 
+###
+### vov site remove
+###
+
+function vov_remove_site {
+	IN_SITE_NAME=$1
+	shift
+
+	run_sudo
+
+	# Run the VV utility
+	echo_w "Running vv..."
+	externals/vv/vv remove --name $IN_SITE_NAME
 	echo_w "vv finished."
 }
 
@@ -388,25 +401,27 @@ case "$IN_ACTION" in
 		shift
 		IN_SITE_ACTION="$1"
 		IN_SITE_NAME="$2"
+		shift 2 
 		case "$IN_SITE_ACTION" in
 
 			# create a site
 			create)
 
-				# first two arguments processed, rest will be passed to vov_create_site
-				shift 2 
+				# rest of the arguments will be passed to vov_create_site
 				vov_create_site "$IN_SITE_NAME" "$@"
 				
 				;;
 				
-			delete)
+			remove)
+				vov_remove_site "$IN_SITE_NAME" "$@" 
 				;;
 			*)
-				echo_w "Unknown site action. Specify 'create' or 'delete'."
+				echo_w "Unknown site action. Specify 'create' or 'remove'."
 				;;
 		esac
 		;;
 	*)
-		echo_w "Unknown action. Specify 'init' or 'site'."
+		echo_w "Unknown action. Please refer to documentation for this script:"
+		echo_y "https://git.onthegosystems.com/misc/vvv-for-otgs/wikis/vov-sh."
 		;;
 esac
