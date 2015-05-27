@@ -168,14 +168,29 @@ function vov_init {
 	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
 
-  IS_CYGWIN=0
-  if [ `uname -o` == "Cygwin" ]; then
-    echo "Cygwin detected. Welcome, Windows user!"
-    IS_CYGWIN=1
-  fi
+	IS_CYGWIN=0
+	if [ `uname -o` == "Cygwin" ]; then
+		echo "Cygwin detected. Welcome, Windows user!"
+		IS_CYGWIN=1
+	fi
+
+	MACHINE_HW_NAME=`uname -m`
+	if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
+		IS_32BIT_HOST=0
+	else
+		echo "This is a 32bit machine."
+		IS_32BIT_HOST=1
+	fi
     
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
+
+	if [ "$IS_32BIT_HOST" == "1" ]; then
+		if [ "$IN_32BIT_BOX" == 0 ]; then
+			yes_no_question "It seems that you are on a 32bit machine. Switch to 32bit box? [Y/n]" 1 IN_32BIT_BOX
+		fi
+	fi
+	
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
 	yes_no_question "Should the box have two CPU cores instead of one? [y/N]" 0 IN_TWO_CPUS
@@ -199,7 +214,7 @@ function vov_init {
 	then
 		echo_w "Attempting to install Vagrant plugins..."
     
-    vagrant plugin install vagrant-hostsupdater
+		vagrant plugin install vagrant-hostsupdater
 		vagrant plugin install vagrant-triggers
 
 	fi
@@ -245,7 +260,7 @@ function vov_init {
 
 	echo_w "Finished."
 	echo
-	echo_w "Now you are ready to run VOV with command:$COLOUR_YELLOW vagrant up"
+	echo_w "Now you are ready to run VOV with command:$COLOUR_YELLOW ./vov up"
 	echo
 }
 
