@@ -267,6 +267,17 @@ if [[ $ping_result == "Connected" ]]; then
 	echo "Adding graphviz symlink for Webgrind..."
 	ln -sf /usr/bin/dot /usr/local/bin/dot
 
+	# phpDocumentor
+	#
+	# Install phpDocumentor by the easiest method possible. The phpdoc
+	# command will be available from any path in the system.
+	#
+	# The --nocompress is a workaround for this bug:
+	# http://askubuntu.com/questions/590037/error-installing-phpdocumentor-on-ubuntu-14-04
+	echo "Installing phpDocumentor..."
+	pear channel-discover pear.phpdoc.org
+	pear install --nocompress phpdoc/phpDocumentor
+
 else
 	echo -e "\nNo network connection available, skipping package installation"
 fi
@@ -567,6 +578,7 @@ PHP
 	wp_install_default_plugins "WordPress Stable"
 	wp_install_otgs_resources "WordPress Stable"
 
+	echo "Checking WordPress develop for upgrades..."
 	# Test to see if an svn upgrade is needed
 	svn_test=$( svn status -u /srv/www/wordpress-develop/ 2>&1 );
 	if [[ $svn_test == *"svn upgrade"* ]]; then
@@ -574,6 +586,8 @@ PHP
 		for repo in $(find /srv/www -maxdepth 5 -type d -name '.svn'); do
 			svn upgrade "${repo/%\.svn/}"
 		done
+	else
+		echo "Upgrade not needed."
 	fi;
 
 	# Checkout, install and configure WordPress trunk via core.svn
@@ -623,6 +637,7 @@ PHP
 		echo "Installing WordPress develop..."
 		wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
 		cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
+		wp_install_default_plugins "WordPress develop"
 		cd /srv/www/wordpress-develop/
 		echo "Running npm install for the first time, this may take several minutes..."
 		npm install &>/dev/null
@@ -641,7 +656,7 @@ PHP
 		echo "Updating npm packages..."
 		npm install &>/dev/null
 	fi
-	wp_install_default_plugins "WordPress develop"
+	cd /srv/www/wordpress-develop/src/
 	wp_install_otgs_resources "WordPress develop"
 
 	if [[ ! -d /srv/www/wordpress-develop/build ]]; then
