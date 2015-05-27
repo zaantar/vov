@@ -49,6 +49,14 @@
 			"afterwards" : "wp --allow-root plugin activate toolset-module-manager"
 		},
 		{
+			"name" : "Toolset Starter",
+			"type" : "git",
+			"source" :	"git.onthegosystems.com/reference-sites/toolset-starter.git",
+			"credentials" : "git_onthegosystems_com",
+			"destination" : "wp-content/themes/toolset-starter",
+			"afterwards" : "wp --allow-root theme activate toolset-starter"
+		},
+		{
 			"name" : "SitePress Multilingual CMS",
 			"type" : "git",
 			"source" : "git.onthegosystems.com/wpml/sitepress-multilingual-cms.git",
