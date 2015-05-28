@@ -139,6 +139,7 @@ function fix_permissions {
 
 function maybe_sudo {
 	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin
 		eval "$@"
 	else
 		sudo "$@"
@@ -148,6 +149,7 @@ function maybe_sudo {
 
 function run_sudo {
 	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin - we will not print anything
 		return
 	else
 		sudo echo "Superuser privileges granted."
@@ -390,18 +392,14 @@ function vov_remove_site {
 
 
 ###
-### vov install-shortcut
+### vov install-link
 ###
 
 function vov_install_link {
 
-	if [ "$IS_LINUX" == "0" ]; then
-		echo_w "This action is available only for Linux."
-		return
-	fi
-	
 	run_sudo
 
+	# Confirmed that this works on linux and Cygwin 
 	VOV_LINK="/usr/local/bin/vov"
 	
 	echo_w "Generating symlink to vov in $VOV_LINK..."
