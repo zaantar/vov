@@ -1360,7 +1360,7 @@ check_args() {
 				shift 3				
 				;;
 
-			--vov_omit_checkout)
+			--vov-omit-checkout)
 				vov_omit_checkout="1"
 				shift
 				;;
