@@ -128,8 +128,23 @@ function fix_permissions {
 }
 
 
+function maybe_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin
+		eval "$@"
+	else
+		sudo "$@"
+	fi
+}
+
+
 function run_sudo {
-	sudo echo "Superuser privileges granted."
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin - we will not print anything
+		return
+	else
+		sudo echo "Superuser privileges granted."
+	fi
 }
 
 
@@ -343,18 +358,14 @@ function vov_remove_site {
 
 
 ###
-### vov install-shortcut
+### vov install-link
 ###
 
 function vov_install_link {
 
-	if [ "$IS_LINUX" == "0" ]; then
-		echo_w "This action is available only for Linux."
-		return
-	fi
-	
 	run_sudo
 
+	# Confirmed that this works on linux and Cygwin 
 	VOV_LINK="/usr/local/bin/vov"
 	
 	echo_w "Generating symlink to vov in $VOV_LINK..."
@@ -362,14 +373,14 @@ function vov_install_link {
 	if [ -e "$VOV_LINK" ]; then
 		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
 		if [ "$IN_CONTINUE" == "1" ]; then
-			sudo rm "$VOV_LINK"
+			maybe_sudo rm "$VOV_LINK"
 		else
 			echo_w "Aborted."
 			return
 		fi
 	fi
 	
-	sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
+	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
 	echo_w "Done."
 }
 
