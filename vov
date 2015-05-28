@@ -400,11 +400,6 @@ IS_OSX=0
 
 case `uname` in
 	
-	Cygwin)
-		#todo check if this works
-		echo "Cygwin detected. Welcome, Windows user!"
-		IS_CYGWIN=1
-		;;
 	Linux)
 		echo "Linux, yaaay!"
 		IS_LINUX=1
@@ -414,7 +409,13 @@ case `uname` in
 		IS_OSX=1
 		;;
 	*)
-		echo "Your platform might not be fully supported."
+		# Let's try uname -o. It might not be supported, but we have nothing to lose.
+		if [ `uname -o` == "Cygwin" ]; then
+			echo "Cygwin detected. Welcome, Windows user!"
+			IS_CYGWIN=1
+		else
+			echo "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
+		fi
 		;;
 esac
 
