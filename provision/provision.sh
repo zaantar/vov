@@ -525,22 +525,6 @@ if [[ $ping_result == "Connected" ]]; then
 	/srv/www/phpcs/scripts/phpcs -i
 	
 	
-	# Function to install and activate a list of default plugins on each site.
-	# Accepts one argument with site name.
-	function wp_install_default_plugins() { 
-		echo "Installing and activating default plugins for $1..."
-		
-		# Skip comments and empty lines	
-		grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
-			# Iterate through all plugin names
-			while read plugin_name; do
-				echo "Installing $plugin_name..."
-				wp plugin install "$plugin_name" --activate
-			done 
-		}
-	}
-	
-	
 	# Function to install WordPress resources by vov_checkout.
 	# Accepts one argument with site name.
 	function wp_install_otgs_resources {
@@ -575,7 +559,6 @@ PHP
 		cd /srv/www/wordpress-default
 		wp core upgrade
 	fi
-	wp_install_default_plugins "WordPress Stable"
 	wp_install_otgs_resources "WordPress Stable"
 
 	echo "Checking WordPress develop for upgrades..."
@@ -612,7 +595,6 @@ PHP
 		cd /srv/www/wordpress-trunk
 		svn up
 	fi
-	wp_install_default_plugins "WordPress trunk"
 	wp_install_otgs_resources "WordPress trunk"
 
 	# Checkout, install and configure WordPress trunk via develop.svn
@@ -637,7 +619,6 @@ PHP
 		echo "Installing WordPress develop..."
 		wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
 		cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
-		wp_install_default_plugins "WordPress develop"
 		cd /srv/www/wordpress-develop/
 		echo "Running npm install for the first time, this may take several minutes..."
 		npm install &>/dev/null
@@ -691,6 +672,7 @@ find /etc/nginx/custom-sites -name 'vvv-auto-*.conf' -exec rm {} \;
 for SITE_CONFIG_FILE in $(find /srv/www -maxdepth 5 -name 'vvv-init.sh'); do
 	DIR="$(dirname $SITE_CONFIG_FILE)"
 	(
+		echo "Executing site config script vvv-init.sh in $DIR"
 		cd "$DIR"
 		source vvv-init.sh
 		source /srv/config/vvv-init-after-each.sh
@@ -698,6 +680,7 @@ for SITE_CONFIG_FILE in $(find /srv/www -maxdepth 5 -name 'vvv-init.sh'); do
 done
 
 # Look for Nginx vhost files, symlink them into the custom sites dir
+echo "Looking for Nginx vhost files and creating symlinks in the custom sites directory"
 for SITE_CONFIG_FILE in $(find /srv/www -maxdepth 5 -name 'vvv-nginx.conf'); do
 	DEST_CONFIG_FILE=${SITE_CONFIG_FILE//\/srv\/www\//}
 	DEST_CONFIG_FILE=${DEST_CONFIG_FILE//\//\-}

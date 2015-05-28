@@ -76,6 +76,21 @@ function handle_svn_repository {
 }
 
 
+# Install and activate a list of default plugins on each site.
+function install_default_plugins() { 
+	echo "Installing and activating default plugins..."
+	
+	# Skip comments and empty lines	
+	grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
+		# Iterate through all plugin names
+		while read plugin_name; do
+			echo "Installing $plugin_name..."
+			sudo --u vagrant -- wp plugin install "$plugin_name" --activate
+		done 
+	}
+}
+
+
 # GIT repository handler
 # Arguments
 #	1. Resource index
@@ -93,9 +108,14 @@ function handle_git_repository {
 
 	# todo support SSH in the future
 	GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
-
+	
 	echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
 	git clone "$GIT_SRC" "$RES_DESTINATION"
+
+	#echo 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > gitssh
+	#chmod +x ssh
+	#GIT_TRACE=1 GIT_SSH='./gitssh' git clone "$GIT_USER@$RES_SOURCE" "$RES_DESTINATION"
+
 }
 
 
@@ -152,5 +172,8 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	
 	let I=I+1
 done
+
+# default plugins from wordpress.org
+install_default_plugins
 
 echo "vov_checkout finished."
