@@ -457,7 +457,7 @@ case "$IN_ACTION" in
 		vov_init
 		;;
 
-	# up, suspend, halt, destroy, provision
+	# up, suspend, halt, destroy, provision, ssh
 	#
 	# run vagrant commands but invoke sudo first
 	# so the user can enter their password immediately and is not
@@ -486,6 +486,21 @@ case "$IN_ACTION" in
 	provision)
 		run_sudo
 		vagrant provision "$@"
+		;;
+
+	ssh)
+		vagrant ssh "$@"
+		;;
+
+	# Invoke the vv utility and pass rest of the arguments.
+	#
+	#
+
+	vv)
+		echo_w "Running vv (Variable VVV)..."
+		externals/vv/vv --about
+		externals/vv/vv "$@"
+		echo
 		;;
 
 
