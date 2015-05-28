@@ -12,9 +12,9 @@
 #	 ██    ██ ██    ██
 #	░██   ░██░██   ░██ 	  ▓▓▓▓▓▓▓▓▓▓
 #	░░██ ░██ ░░██ ░██ 	 ░▓ author ▓ Brad Parbs <brad@bradparbs.com>
-#	 ░░████   ░░████         ░▓ github ▓ http://github.com/bradp/vv
-#	  ░░██     ░░██          ░▓▓▓▓▓▓▓▓▓▓
-#	   ░░       ░░   	  ░░░░░░░░░░
+#	 ░░████   ░░████     ░▓ github ▓ http://github.com/bradp/vv
+#	  ░░██     ░░██      ░▓▓▓▓▓▓▓▓▓▓
+#	   ░░       ░░   	 ░░░░░░░░░░
 #
 # This script automates the creation & deletion of new WordPress sites using
 # Varying Vagrant Vagrants (https://github.com/Varying-Vagrant-Vagrants/VVV).
@@ -720,6 +720,12 @@ PHP"
 		db_init="wp db import ../$site.sql --allow-root && rm ../$site.sql"
 	fi
 
+	maybe_vov_checkout=""
+	if [ "$vov_omit_checkout" != "1" ]; then
+		maybe_vov_checkout="/vagrant/provision/vov_checkout"
+	fi
+
+
 	if [ "$no_wp_with_db" = "true" ]; then
 		if [ ! -e "$path"/database/init-custom.sql ]; then
 			touch "$path"/database/init-custom.sql
@@ -737,11 +743,11 @@ PHP"
 				echo "	cd ./$web_root"
 				echo "	$db_init"
 				echo "	"
-				echo "  /vagrant/provision/vov_checkout"
+				echo "	$maybe_vov_checkout"
 
-				if [ $vov_is_bundle == 1 ]; then
-					echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
-				fi
+				#if [ $vov_is_bundle == 1 ]; then
+				#	echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
+				#fi
 				
 				echo "  "
 				echo "	cd -"
@@ -762,7 +768,7 @@ PHP"
 		if [[ "$remove_defaults" = "y" ]]; then
 			maybe_remove_defaults="wp theme delete twentythirteen --allow-root; wp theme delete twentyfourteen --allow-root; wp theme delete twentyfifteen --allow-root; wp plugin delete hello --allow-root; wp plugin delete aksimet --allow-root; git checkout HEAD ."
 		fi
-
+-
 		install_method="wp core download --allow-root $installversion"
 		config="wp core config --dbname=\"$db_name\" --dbuser=wp --dbpass=wp --dbhost=\"localhost\" --allow-root$wp_debug_text"
 		core="wp core $install_text --url=$domain --title=\"$site\" --admin_user=$username --admin_password=$password --admin_email=$email --allow-root"
@@ -789,11 +795,11 @@ PHP"
 			echo "  $maybe_remove_defaults"
 
 			echo "	"
-			echo "  /vagrant/provision/vov_checkout"
+			echo "	$maybe_vov_checkout"
 
-			if [ $vov_is_bundle == 1 ]; then
-				echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
-			fi
+			#if [ $vov_is_bundle == 1 ]; then
+			#	echo "	/vagrant/provision/vov_bundle_checkout \"$vov_bundle\" \"$vov_bundle_version\""
+			#fi
 			
 			echo "	"
 			echo "	cd -"
@@ -1352,6 +1358,11 @@ check_args() {
 				vov_bundle="$2"
 				vov_bundle_version="$3"
 				shift 3				
+				;;
+
+			--vov_omit_checkout)
+				vov_omit_checkout="1"
+				shift
 				;;
 				
 			*)
