@@ -129,7 +129,7 @@ function fix_permissions {
 
 
 function run_sudo {
-	sudo echo "Superuser privileges granted"
+	sudo echo "Superuser privileges granted."
 }
 
 
@@ -167,20 +167,6 @@ function vov_init {
 	CONFIG_TWO_CPUS='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--cpus", 2]\nend\n'
 	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
-
-	IS_CYGWIN=0
-	if [ `uname -o` == "Cygwin" ]; then
-		echo "Cygwin detected. Welcome, Windows user!"
-		IS_CYGWIN=1
-	fi
-
-	MACHINE_HW_NAME=`uname -m`
-	if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
-		IS_32BIT_HOST=0
-	else
-		echo "This is a 32bit machine."
-		IS_32BIT_HOST=1
-	fi
     
 	# user input
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
@@ -272,7 +258,10 @@ function vov_init {
 ###
 
 function vov_create_site {
-	
+
+	# Determine site name and domain
+	#
+	#
 	SITE_NAME=$1
 	shift
 	SITE_DOMAIN="$SITE_NAME.wordpress.dev"
@@ -286,35 +275,53 @@ function vov_create_site {
 
 	SITE_ARGS="--name $SITE_NAME --domain $SITE_DOMAIN --debug"
 
-	# Defaults
+	# Default options
+	#
+	#
 	IS_BUNDLE_SITE=0 # If 1, this is a site with a bundle checkout
 	BUNDLE_VERSION=0
+	IS_CLEAR_SITE=0 # If 1, no vov_checkout will be performed on the site
 	
 	# Parse additional commandline parameters
-
+	#
+	#
 	OPTIND=1
 	while [ ! -z "$1" ]; do
 		case "$1" in
-		--bundle)
-			IS_BUNDLE_SITE=1
-			BUNDLE_NAME="$2"
-			BUNDLE_VERSION="$3"
-			shift 3
-			;;
+			--bundle)
+				IS_BUNDLE_SITE=1
+				BUNDLE_NAME="$2"
+				BUNDLE_VERSION="$3"
+				shift 3
+				;;
+			--clear)
+				IS_CLEAR_SITE=1
+				shift
+				;;
 		esac
 	done
 
+	# Build arguments for vv
+	#
+	#
+	BUNDLE_ARGS=""
 	if [ $IS_BUNDLE_SITE == 1 ]; then
 		BUNDLE_ARGS="--bundle \"$BUNDLE_NAME\" \"$BUNDLE_VERSION\""
-	else
-		BUNDLE_ARGS=""
 	fi
 
-	run_sudo
+	CLEAR_ARGS=""
+	if [ $IS_CLEAR_SITE == 1 ]; then
+		CLEAR_ARGS="--vov-omit-checkout"
+	fi
 
 	# Run the VV utility
+	#
+	#
+
+	run_sudo
+	
 	echo_w "Running vv..."
-	externals/vv/vv create $SITE_ARGS $BUNDLE_ARGS
+	externals/vv/vv create $SITE_ARGS $BUNDLE_ARGS $CLEAR_ARGS
 	echo_w "vv finished."
 }
 
@@ -336,6 +343,38 @@ function vov_remove_site {
 
 
 ###
+### vov install-shortcut
+###
+
+function vov_install_link {
+
+	if [ "$IS_LINUX" == "0" ]; then
+		echo_w "This action is available only for Linux."
+		return
+	fi
+	
+	run_sudo
+
+	VOV_LINK="/usr/local/bin/vov"
+	
+	echo_w "Generating symlink to vov in $VOV_LINK..."
+
+	if [ -e "$VOV_LINK" ]; then
+		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
+		if [ "$IN_CONTINUE" == "1" ]; then
+			sudo rm "$VOV_LINK"
+		else
+			echo_w "Aborted."
+			return
+		fi
+	fi
+	
+	sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
+	echo_w "Done."
+}
+
+
+###
 ### main
 ###
 
@@ -349,56 +388,112 @@ echo
 echo_y "                                                    ...just VOV!"
 echo
 
-# parse input and execute the right action
 
-# TODO print help on invalid input
+# Probe environment
+#
+# Detect Cygwin, determine machine hardware etc.
+
+# cygwin or not, that's the question
+IS_CYGWIN=0
+IS_LINUX=0
+IS_OSX=0
+
+case `uname` in
+	
+	Cygwin)
+		#todo check if this works
+		echo "Cygwin detected. Welcome, Windows user!"
+		IS_CYGWIN=1
+		;;
+	Linux)
+		echo "Linux, yaaay!"
+		IS_LINUX=1
+		;;
+	darwin|Darwin)
+		echo "OS X. Please help me with testing your platform."
+		IS_OSX=1
+		;;
+	*)
+		echo "Your platform might not be fully supported."
+		;;
+esac
+
+
+# machine name
+MACHINE_HW_NAME=`uname -m`
+if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
+	IS_32BIT_HOST=0
+else
+	echo "This is a 32bit machine."
+	IS_32BIT_HOST=1
+fi
+
+# determine absolute path to this script
+# http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
+# http://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink
+VOV_PATH="$(dirname "$(readlink -f "$0")")"
+echo "VOV_PATH is $VOV_PATH"
+
+# parse input and execute the right action
+#
+# 
+
+# everything must happen in the VOV project path
+cd "$VOV_PATH"
 
 IN_ACTION="$1"
+shift
+
+echo
 
 case "$IN_ACTION" in
 
-	version)
-		echo
-		echo_w "VOV version is $VOV_VERSION".
-		echo
-		;;
 
+	# Site initialization
+	#
+	#
+	
     init)
-		shift
 		vov_init
 		;;
 
+	# up, suspend, halt, destroy, provision
+	#
 	# run vagrant commands but invoke sudo first
 	# so the user can enter their password immediately and is not
 	# bothered by vagrant-hostsupdater anymore
 	
 	up)
-		shift
 		run_sudo
 		vagrant up "$@"
 		;;
 
 	suspend)
-		shift
 		run_sudo
 		vagrant suspend "$@"
 		;;
 
 	halt)
-		shift
 		run_sudo
 		vagrant halt "$@"
 		;;
 
 	destroy)
-		shift
 		run_sudo
 		vagrant destroy "$@"
 		;;
 
-	# operation on a site
+	provision)
+		run_sudo
+		vagrant provision "$@"
+		;;
+
+
+	# Perform operation on a site
+	#
+	#
+	
 	site)
-		shift
 		IN_SITE_ACTION="$1"
 		IN_SITE_NAME="$2"
 		shift 2 
@@ -411,7 +506,8 @@ case "$IN_ACTION" in
 				vov_create_site "$IN_SITE_NAME" "$@"
 				
 				;;
-				
+
+			# remove a site
 			remove)
 				vov_remove_site "$IN_SITE_NAME" "$@" 
 				;;
@@ -420,8 +516,36 @@ case "$IN_ACTION" in
 				;;
 		esac
 		;;
+
+
+	# Print VOV version
+	#
+	#
+	
+	version)
+		echo
+		echo_w "VOV version is $VOV_VERSION".
+		echo
+		;;
+
+
+	# Create symlink to this script
+	#
+	#
+
+	install-link)
+		vov_install_link
+		;;
+
+	# Unrecognized command
+	#
+	# Print link to VOV wiki.
+	
 	*)
 		echo_w "Unknown action. Please refer to documentation for this script:"
 		echo_y "https://git.onthegosystems.com/misc/vvv-for-otgs/wikis/vov-sh."
 		;;
 esac
+
+# return from VOV_PATH
+cd - > /dev/null
