@@ -1,6 +1,10 @@
 #!/bin/bash
 
+# Suffix "-dev" means that this is development version *following* the given version number.
+# Among other reason, this is because sort -V doesn't work well with string suffixes and 0.1-dev
+# will be considered greater version than just 0.1.
 VOV_VERSION='0.1-dev'
+
 
 ###
 ### terminal output formatting
@@ -10,6 +14,7 @@ COLOUR_WHITE='\033[01;37m'
 COLOUR_YELLOW='\033[01;33m'
 COLOUR_RESTORE='\033[0m'
 COLOUR_RED='\033[91m'
+COLOUR_LIGHT_GRAY='\033[0;37m'
 
                           
 function echo_w {
@@ -18,6 +23,10 @@ function echo_w {
 
 function echo_y {
     echo -e "$COLOUR_YELLOW$1$COLOUR_RESTORE"
+}
+
+function echo_g {
+	echo -e "$COLOUR_LIGHT_GRAY$1$COLOUR_RESTORE"
 }
 
 
@@ -128,8 +137,21 @@ function fix_permissions {
 }
 
 
+function maybe_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		eval "$@"
+	else
+		sudo "$@"
+	fi
+}
+
+
 function run_sudo {
-	sudo echo "Superuser privileges granted."
+	if [ "$IS_CYGWIN" == "1" ]; then
+		return
+	else
+		sudo echo "Superuser privileges granted."
+	fi
 }
 
 
@@ -149,6 +171,31 @@ function rawurlencode {
      encoded+="${o}"
   done
   echo "${encoded}"
+}
+
+
+is_update_available () {
+	local THIS_VERSION=$1
+	local REPO_VERSION=$2
+	LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
+	if [ $LATEST_VERSION == $THIS_VERSION ]; then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+
+function check_updates {
+	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+	echo_g "You are on the $CURRENT_BRANCH branch."
+	
+	local LAST_TAG=`git describe --abbrev=0 --tags`	
+	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
+	if [ $UPDATE_EXISTS == 1 ]; then
+		echo_y "There is a new version of VOV available: $LAST_TAG"
+	fi
 }
 
 
@@ -362,14 +409,14 @@ function vov_install_link {
 	if [ -e "$VOV_LINK" ]; then
 		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
 		if [ "$IN_CONTINUE" == "1" ]; then
-			sudo rm "$VOV_LINK"
+			maybe_sudo rm "$VOV_LINK"
 		else
 			echo_w "Aborted."
 			return
 		fi
 	fi
 	
-	sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
+	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
 	echo_w "Done."
 }
 
@@ -401,20 +448,20 @@ IS_OSX=0
 case `uname` in
 	
 	Linux)
-		echo "Linux, yaaay!"
+		echo_g "Linux, yaaay!"
 		IS_LINUX=1
 		;;
 	darwin|Darwin)
-		echo "OS X. Please help me with testing your platform."
+		echo_g "OS X. Please help me with testing your platform."
 		IS_OSX=1
 		;;
 	*)
 		# Let's try uname -o. It might not be supported, but we have nothing to lose.
 		if [ `uname -o` == "Cygwin" ]; then
-			echo "Cygwin detected. Welcome, Windows user!"
+			echo_g "Cygwin detected. Welcome, Windows user!"
 			IS_CYGWIN=1
 		else
-			echo "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
+			echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
 		fi
 		;;
 esac
@@ -425,7 +472,7 @@ MACHINE_HW_NAME=`uname -m`
 if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
 	IS_32BIT_HOST=0
 else
-	echo "This is a 32bit machine."
+	echo_g "This is a 32bit machine."
 	IS_32BIT_HOST=1
 fi
 
@@ -433,7 +480,10 @@ fi
 # http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
 # http://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink
 VOV_PATH="$(dirname "$(readlink -f "$0")")"
-echo "VOV_PATH is $VOV_PATH"
+echo_g "VOV_PATH is $VOV_PATH"
+
+# check for VOV updates
+check_updates
 
 # parse input and execute the right action
 #
@@ -539,7 +589,6 @@ case "$IN_ACTION" in
 	#
 	
 	version)
-		echo
 		echo_w "VOV version is $VOV_VERSION".
 		echo
 		;;
@@ -562,6 +611,9 @@ case "$IN_ACTION" in
 		echo_y "https://git.onthegosystems.com/misc/vvv-for-otgs/wikis/vov-sh."
 		;;
 esac
+
+# next time we will know if there is an upgrade available
+git fetch
 
 # return from VOV_PATH
 cd - > /dev/null
