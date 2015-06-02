@@ -45,7 +45,7 @@ function echo_g {
 alias nw='nano -w'
 alias syslog='tail -f /var/log/syslog'
 alias ls='ls --color=auto'
-alias ll='ls -l'
+alias ll='ls -la'
 alias ..='cd ..' 
 alias ...='cd ../../'
 
@@ -67,7 +67,6 @@ alias cdt='cd wp-content/themes'
 alias cdwpp='cdwp && cdp'
 
 alias cdv='cdwpp && cd wp-views'
-alias cdt='cdwpp && cd types'
 alias cdl='cdwpp && cd layouts'
 
 ###
