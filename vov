@@ -557,7 +557,7 @@ case "$IN_ACTION" in
 		vagrant "$@"
 		;;
 
-	# Pass commands to vv
+	# List existing sites
 	#
 	#
 
@@ -573,6 +573,13 @@ case "$IN_ACTION" in
 		run_vv "$@"
 		;;
 
+	# Run command inside the box
+	#
+	#
+
+	run)
+		vagrant ssh -- bash -ic \'$@\'
+		;;
 
 	# Perform operation on a site
 	#
