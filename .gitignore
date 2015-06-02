@@ -38,6 +38,9 @@
 # We definitely don't want to store any repository credentials
 /config/checkout-credentials/*
 
+# Exclude any custom plugin files
+/config/checkout-zipfiles/*
+
 # Log files should be ignored.
 /log/*.log
 

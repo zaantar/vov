@@ -118,7 +118,19 @@ function handle_git_repository {
 
 }
 
-
+# ZIP repository handler
+# Arguments
+#	1. Resource index
+#	2. Source
+#	3. Destination
+function handle_zip_repository {
+	local I=$1
+	local RES_SOURCE="/vagrant/config/checkout-zipfiles/$2"
+	local ASSET_TYPE=$(jqcr $I asset_type)
+	
+	echo "Installing $ASSET_TYPE from local zip file $RES_SOURCE"
+	sudo -u vagrant -- wp $ASSET_TYPE install "$RES_SOURCE"
+}
 
 #
 # main
@@ -155,6 +167,9 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 				;;
 			git)
 				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+				;;
+			zip)
+				handle_zip_repository $I "$RES_SOURCE" 
 				;;
 			*)
 				echo "Repository type not supported."

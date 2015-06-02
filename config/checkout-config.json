@@ -63,6 +63,12 @@
 			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/sitepress-multilingual-cms",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate sitepress-multilingual-cms"
+		},
+		{
+			"name" : "Hello Security",
+			"type" : "zip",
+			"asset_type" : "plugin",
+			"source" : "hello-security.zip"
 		}
 	]
 }
