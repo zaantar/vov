@@ -6,7 +6,7 @@
 			"source" : "https://www.onthegosystems.com/misc_svn/cck/trunk/",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/types",
-			"afterwards" : "wp --allow-root plugin activate types"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate types"
 		},
 		{
 			"name" : "Views",
@@ -14,7 +14,7 @@
 			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/wp-views",
-			"afterwards" : "wp --allow-root plugin activate wp-views"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate wp-views"
 		},
 		{
 			"name" : "CRED",
@@ -22,7 +22,7 @@
 			"source" : "https://www.onthegosystems.com/misc_svn/crud/trunk_new",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/cred-frontend-editor",
-			"afterwards" : "wp --allow-root plugin activate cred-frontend-editor"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate cred-frontend-editor"
 		},
 		{
 			"name" : "Layouts",
@@ -30,7 +30,7 @@
 			"source" : "https://www.onthegosystems.com/misc_svn/layouts/core/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/layouts",
-			"afterwards" : "wp --allow-root plugin activate layouts"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate layouts"
 		},
 		{
 			"name" : "Access",
@@ -38,7 +38,7 @@
 			"source" : "https://www.onthegosystems.com/misc_svn/types-access/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/types-access",
-			"afterwards" : "wp --allow-root plugin activate types-access"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate types-access"
 		},
 		{
 			"name" : "Module Manager",
@@ -46,7 +46,7 @@
 			"source" :	"https://www.onthegosystems.com/misc_svn/module_manager/trunk",
 			"credentials" : "onthegosystems_com_misc_svn",
 			"destination" : "wp-content/plugins/toolset-module-manager",
-			"afterwards" : "wp --allow-root plugin activate toolset-module-manager"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate toolset-module-manager"
 		},
 		{
 			"name" : "Toolset Starter",
@@ -54,7 +54,7 @@
 			"source" :	"git.onthegosystems.com/reference-sites/toolset-starter.git",
 			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/themes/toolset-starter",
-			"afterwards" : "wp --allow-root theme activate toolset-starter"
+			"afterwards" : "sudo -u vagrant -- wp theme activate toolset-starter"
 		},
 		{
 			"name" : "SitePress Multilingual CMS",
@@ -62,7 +62,7 @@
 			"source" : "git.onthegosystems.com/wpml/sitepress-multilingual-cms.git",
 			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/sitepress-multilingual-cms",
-			"afterwards" : "wp --allow-root plugin activate sitepress-multilingual-cms"
+			"afterwards" : "sudo -u vagrant -- wp plugin activate sitepress-multilingual-cms"
 		}
 	]
 }
