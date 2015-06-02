@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# repository_update
+#
+# Based on the svnup utility from Dylon Edwards <deltaecho@archlinux.us>
+#
+# This script recursively traverses given directories and looks for svn or git repositories. When a repo
+# is found, it is updated (svn up or git pull) if the update succeeds, it's subdirs are not traversed anymore.
+#
+# It accepts a list of paths as arguments. If none are provided, current directory is used instead.
+
+# Profit from our bash aliases, greet the user
+source ~/.bash_aliases
+say_vov
+echo_w "repository_update"
+echo_y "Based on the svnup utility from Dylon Edwards <deltaecho@archlinux.us>"
+
+
+# Recursively update all subdirectories
+#
+# Accepts target path as first argument. Must not contain trailing slash.
+# Runs recursive_update on each subdirectory.
+function update_subdirs {
+	local target="$1"
+
+	for subdir in $( ls $target ); do
+		if [[ -d $target/$subdir ]]; then
+			recursive_update "$target/$subdir"
+		fi
+	done;
+}
+
+
+# Recursively update one directory
+#
+# Accepts target path as first argument. Must not contain trailing slash.
+# If this directory contains git or svn repository, it will be updated. If the update fails
+# or if there is no repository, all subdirectories will be updated recursively.
+function recursive_update {
+	local target="$1"
+
+	# If the target file contains a .svn file
+	if [[ -d $target/.svn ]]; then
+		echo_y "Subversion repository found at $target"
+		echo_g "Updating..."
+		# Update the target
+        svn up "$target" || {
+			# If the update fails, update each of its subdirectories
+			echo_w "Update failed. Trying to update subdirectories instead."
+            update_subdirs "$target"
+        }
+    # Look for a git repository
+	elif [[ -d $target/.git ]]; then
+		echo_y "Git repository found at $target"
+		echo_g "Pulling..."
+		git --work-tree "$target" --git-dir "$target/.git" pull || {
+			echo_w "Update failed. Trying to update subdirectories instead."
+			update_subdirs "$target"
+		}
+    # If the target file doesn't contain a .svn file
+    else
+        update_subdirs "$target"
+    fi
+}
+
+# Read arguments and use them as root directories for the recursive updates.
+# If there are no arguments, use current directory.
+[[ $# == 0 ]] && dirs=($PWD) || dirs=($@)
+
+# Update the target directories
+for root_dir in ${dirs[@]}; do
+	recursive_update "$root_dir"
+done
+
+echo_w "Finished."
