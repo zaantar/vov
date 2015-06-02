@@ -41,7 +41,7 @@ Vagrant.configure("2") do |config|
     override.vm.box = "parallels/ubuntu-14.04"
   end
 
-  config.vm.hostname = "vvv"
+  config.vm.hostname = "vov"
 
   # Local Machine Hosts
   #
