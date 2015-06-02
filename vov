@@ -201,6 +201,14 @@ function check_updates {
 }
 
 
+function run_vv {
+	echo_w "Running vv (Variable VVV)..."
+	externals/vv/vv --about
+	externals/vv/vv "$@"
+	echo
+}
+
+
 ###
 ### vov init
 ###
@@ -480,15 +488,15 @@ fi
 VOV_PATH="$(dirname "$(readlink -f "$0")")"
 echo_g "VOV_PATH is $VOV_PATH"
 
+# everything must happen in the VOV project path
+cd "$VOV_PATH"
+
 # check for VOV updates
 check_updates
 
 # parse input and execute the right action
 #
 # 
-
-# everything must happen in the VOV project path
-cd "$VOV_PATH"
 
 IN_ACTION="$1"
 shift
@@ -506,7 +514,7 @@ case "$IN_ACTION" in
 		vov_init
 		;;
 
-	# up, suspend, halt, destroy, provision, ssh
+	# vagrant commands: up, suspend, halt, destroy, provision, ssh
 	#
 	# run vagrant commands but invoke sudo first
 	# so the user can enter their password immediately and is not
@@ -533,12 +541,28 @@ case "$IN_ACTION" in
 		;;
 
 	provision)
-		run_sudo
 		vagrant provision "$@"
 		;;
 
 	ssh)
+		echo_w "Connecting..."
 		vagrant ssh "$@"
+		;;
+
+	# Pass any command to Vagrant
+	#
+	#
+	
+	v)
+		vagrant "$@"
+		;;
+
+	# Pass commands to vv
+	#
+	#
+
+	list)
+		run_vv list
 		;;
 
 	# Invoke the vv utility and pass rest of the arguments.
@@ -546,10 +570,7 @@ case "$IN_ACTION" in
 	#
 
 	vv)
-		echo_w "Running vv (Variable VVV)..."
-		externals/vv/vv --about
-		externals/vv/vv "$@"
-		echo
+		run_vv "$@"
 		;;
 
 
