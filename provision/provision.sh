@@ -200,8 +200,29 @@ if [[ $ping_result == "Connected" ]]; then
 	# npm
 	#
 	# Make sure we have the latest npm version and the update checker module
-	npm install -g npm
-	npm install -g npm-check-updates
+
+	# Print dot for each line of input, print new line each 80 dots.
+	# Just to indicate that something is happening.
+	function process_npm_verbose_output {
+		local prev_time=$(date +%s)
+		local line_count=0
+		while read -r line; do
+			local current_time=$(date +%s)
+			local time_diff=$((current_time-prev_time))
+			let line_count=line_count+1
+
+			if [[ $time_diff > 0 ]]; then
+				echo "npm is still working ($line_count)..."
+				prev_time=$current_time
+			fi
+		done
+		echo
+	}
+	
+	echo "Installing/updating npm"
+	npm install --verbose -g npm 2>&1 | process_npm_verbose_output
+	echo "Installing/updating npm update checker module"
+	npm install --verbose -g npm-check-updates 2>&1 | process_npm_verbose_output
 
 	# xdebug
 	#
@@ -250,14 +271,14 @@ if [[ $ping_result == "Connected" ]]; then
 	# from NPM
 	if [[ "$(grunt --version)" ]]; then
 		echo "Updating Grunt CLI"
-		npm update -g grunt-cli &>/dev/null
-		npm update -g grunt-sass &>/dev/null
-		npm update -g grunt-cssjanus &>/dev/null
+		npm update --verbose -g grunt-cli 2>&1 | process_npm_verbose_output
+		npm update --verbose -g grunt-sass 2>&1 | process_npm_verbose_output
+		npm update --verbose -g grunt-cssjanus 2>&1 | process_npm_verbose_output
 	else
 		echo "Installing Grunt CLI"
-		npm install -g grunt-cli &>/dev/null
-		npm install -g grunt-sass &>/dev/null
-		npm install -g grunt-cssjanus &>/dev/null
+		npm install --verbose -g grunt-cli 2>&1 | process_npm_verbose_output
+		npm install --verbose -g grunt-sass 2>&1 | process_npm_verbose_output
+		npm install --verbose -g grunt-cssjanus 2>&1 | process_npm_verbose_output
 	fi
 
 	# Graphviz
@@ -625,7 +646,7 @@ PHP
 		cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
 		cd /srv/www/wordpress-develop/
 		echo "Running npm install for the first time, this may take several minutes..."
-		npm install &>/dev/null
+		npm --verbose install 2>&1 | process_npm_verbose_output
 	else
 		echo "Updating WordPress develop..."
 		cd /srv/www/wordpress-develop/
@@ -639,7 +660,7 @@ PHP
 			fi
 		fi
 		echo "Updating npm packages..."
-		npm install &>/dev/null
+		npm --verbose install 2>&1 | process_npm_verbose_output
 	fi
 	cd /srv/www/wordpress-develop/src/
 	wp_install_otgs_resources "WordPress develop"
