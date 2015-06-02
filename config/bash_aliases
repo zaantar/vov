@@ -10,6 +10,35 @@
 
 
 ###
+### terminal output formatting
+###
+COLOUR_BTW='\033[90m'
+COLOUR_WHITE='\033[01;37m'
+COLOUR_YELLOW='\033[01;33m'
+COLOUR_RESTORE='\033[0m'
+COLOUR_RED='\033[91m'
+COLOUR_LIGHT_GRAY='\033[0;37m'
+
+
+function say_vov {
+	figlet -cf slant VOV
+}
+
+
+function echo_w {
+    echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
+}
+
+function echo_y {
+    echo -e "$COLOUR_YELLOW$1$COLOUR_RESTORE"
+}
+
+function echo_g {
+	echo -e "$COLOUR_LIGHT_GRAY$1$COLOUR_RESTORE"
+}
+
+
+###
 ### basic linux shortcuts
 ###
 
@@ -36,6 +65,10 @@ alias cdwp='cd /srv/www/wordpress-default'
 alias cdp='cd wp-content/plugins'
 alias cdt='cd wp-content/themes'
 alias cdwpp='cdwp && cdp'
+
+alias cdv='cdwpp && cd wp-views'
+alias cdt='cdwpp && cd types'
+alias cdl='cdwpp && cd layouts'
 
 ###
 ### ack
@@ -76,16 +109,82 @@ function wp_plugins_dir {
 # switch between embedded and full views
 
 function views_embedded {
-	plugins_dir=`wp_plugins_dir`
+	say_vov
+	echo_w "Switching to embedded Views..."
+	local plugins_dir=`wp_plugins_dir`
+
+	echo "Deactivating wp-views"
 	wp plugin deactivate wp-views
+
+	echo "Moving plugin files"
 	mv "$plugins_dir/wp-views/embedded" "$plugins_dir/embedded-views"
+
+	echo "Activating embedded-views"
 	wp plugin activate embedded-views
+
+	echo
+	echo_y "Embedded Views is now active"
+	echo
 }
 
 function views_full {
+	say_vov
+	echo_w "Switching to full Views..."
+	local plugins_dir=`wp_plugins_dir`
+
+	echo "Deactivating embedded-views"
 	wp plugin deactivate embedded-views
+
+	echo "Moving plugin files"
 	mv "$plugins_dir/embedded-views" "$plugins_dir/wp-views/embedded"
+
+	echo "Activating wp-views"
 	wp plugin activate wp-views
+
+	echo
+	echo_y "Full Views is now active"
+	echo
+}
+
+
+# switch between embedded and full
+function types_embedded {
+	say_vov
+	echo_w "Switching to embedded Types..."
+	local plugins_dir=`wp_plugins_dir`
+
+	echo "Deactivating types"
+	wp plugin deactivate types
+
+	echo "Moving plugin files"
+	mv "$plugins_dir/types/embedded" "$plugins_dir/embedded-types"
+
+	echo "Activating embedded-types"
+	wp plugin activate embedded-types
+
+	echo
+	echo_y "Embedded Types is now active"
+	echo
+}
+
+
+function types_full {
+	say_vov
+	echo_w "Switching to full Types..."
+	local plugins_dir=`wp_plugins_dir`
+
+	echo "Deactivating embedded-types"
+	wp plugin deactivate embedded-types
+
+	echo "Moving plugin files"
+	mv "$plugins_dir/embedded-types" "$plugins_dir/types/embedded"
+
+	echo "Activating types"
+	wp plugin activate types
+
+	echo
+	echo_y "Full Types is now active"
+	echo
 }
 
 
@@ -138,5 +237,3 @@ On_White='\e[47m'       # White
 NC="\e[m"               # Color Reset
 
 ALERT=${BWhite}${On_Red} # Bold White on red background
-
-alias say_vov='figlet -cf slant VOV'
