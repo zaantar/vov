@@ -72,7 +72,7 @@ function handle_svn_repository {
 	SVN_PASSWORD=`get_password "$CREDENTIALS_FILE"`
 	
 	echo "Performing SVN checkout as user $SVN_USER from $RES_SOURCE to $RES_DESTINATION..."
-	svn checkout --username "$SVN_USER" --password "$SVN_PASSWORD" "$RES_SOURCE" "$RES_DESTINATION"
+	sudo -u vagrant -i -- svn checkout --username "$SVN_USER" --password "$SVN_PASSWORD" "$RES_SOURCE" "$RES_DESTINATION"
 }
 
 
@@ -110,7 +110,7 @@ function handle_git_repository {
 	GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
 	
 	echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
-	git clone "$GIT_SRC" "$RES_DESTINATION"
+	sudo -u vagrant -i -- git clone "$GIT_SRC" "$RES_DESTINATION"
 
 	#echo 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > gitssh
 	#chmod +x ssh
@@ -140,7 +140,9 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	RES_NAME=`jqcr $I name`
 	RES_TYPE=`jqcr $I type`
 	RES_SOURCE=`jqcr $I source`
+	RES_ROOT=`pwd`
 	RES_DESTINATION=`jqcr $I destination`
+	RES_DESTINATION="$RES_ROOT/$RES_DESTINATION"
 
 	echo "Processing $RES_TYPE repository for $RES_NAME..."
 
