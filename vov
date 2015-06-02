@@ -447,27 +447,24 @@ function vov_repo {
 				local input_arg="$1"
 				shift
 
-				case input_arg in
+				case $input_arg in
 					--all)
 						IS_ALL_SITES=1
 						;;
 					*)
 						SITE_NAME="$input_arg"
-						shift
 						;;
 				esac
 			done
 
 			if [[ $IS_ALL_SITES == 1 ]]; then
-				local UPDATE_PATH="/srv/www/"
+				local UPDATE_PATH="/srv/www"
 			else
 				local UPDATE_PATH="/srv/www/$SITE_NAME"
 			fi
 
-			local UPDATE_COMMAND="'repository_update $UPDATE_PATH'"
-
-			echo_w "Running update command: $UPDATE_COMMAND"
-			./vov -q run $UPDATE_COMMAND
+			local UPDATE_COMMAND="repository_update $UPDATE_PATH"
+			./vov -q run "$UPDATE_COMMAND"
 			;;
 
 		*)
@@ -634,7 +631,9 @@ case "$IN_ACTION" in
 	#
 
 	run)
-		vagrant ssh -- bash -ic \'$@\'
+		run_command="'source ~/.bash_profile; $@'"
+		echo_w "Running command: $run_command"
+		vagrant ssh -- bash -ic $run_command
 		;;
 
 	# Batch action with repositories
