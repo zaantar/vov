@@ -340,17 +340,21 @@ cp /srv/config/memcached-config/memcached.conf /etc/memcached.conf
 echo " * Copied /srv/config/memcached-config/memcached.conf   to /etc/memcached.conf"
 
 # Copy custom dotfiles and bin file for the vagrant user from local
-cp /srv/config/bash_profile /home/vagrant/.bash_profile
-cp /srv/config/bash_aliases /home/vagrant/.bash_aliases
-cp /srv/config/vimrc /home/vagrant/.vimrc
+function as_vagrant {
+	sudo -u vagrant -i -- "$@"
+}
+
+as_vagrant cp /srv/config/bash_profile /home/vagrant/.bash_profile
+as_vagrant cp /srv/config/bash_aliases /home/vagrant/.bash_aliases
+as_vagrant cp /srv/config/vimrc /home/vagrant/.vimrc
 if [[ ! -d /home/vagrant/.subversion ]]; then
-	mkdir /home/vagrant/.subversion
+	as_vagrant mkdir /home/vagrant/.subversion
 fi
-cp /srv/config/subversion-servers /home/vagrant/.subversion/servers
+as_vagrant cp /srv/config/subversion-servers /home/vagrant/.subversion/servers
 if [[ ! -d /home/vagrant/bin ]]; then
-	mkdir /home/vagrant/bin
+	as_vagrant mkdir /home/vagrant/bin
 fi
-rsync -rvzh --delete /srv/config/homebin/ /home/vagrant/bin/
+as_vagrant rsync -rvzh --delete /srv/config/homebin/ /home/vagrant/bin/
 
 echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
 echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
@@ -360,7 +364,7 @@ echo " * rsync'd /srv/config/homebin                          to /home/vagrant/b
 
 # If a bash_prompt file exists in the VVV config/ directory, copy to the VM.
 if [[ -f /srv/config/bash_prompt ]]; then
-	cp /srv/config/bash_prompt /home/vagrant/.bash_prompt
+	as_vagrant cp /srv/config/bash_prompt /home/vagrant/.bash_prompt
 	echo " * Copied /srv/config/bash_prompt                       to /home/vagrant/.bash_prompt"
 fi
 
