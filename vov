@@ -16,7 +16,7 @@ COLOUR_RESTORE='\033[0m'
 COLOUR_RED='\033[91m'
 COLOUR_LIGHT_GRAY='\033[0;37m'
 
-                          
+
 function echo_w {
     echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
 }
@@ -428,19 +428,75 @@ function vov_install_link {
 
 
 ###
+### vov repo
+###
+
+function vov_repo {
+
+	local ACTION="$1"
+	shift
+
+	case $ACTION in
+		update)
+
+			# read input arguments
+			local IS_ALL_SITES=0
+			local SITE_NAME="wordpress-default"
+
+			while [ ! -z "$1" ]; do
+				local input_arg="$1"
+				shift
+
+				case input_arg in
+					--all)
+						IS_ALL_SITES=1
+						;;
+					*)
+						SITE_NAME="$input_arg"
+						shift
+						;;
+				esac
+			done
+
+			if [[ $IS_ALL_SITES == 1 ]]; then
+				local UPDATE_PATH="/srv/www/"
+			else
+				local UPDATE_PATH="/srv/www/$SITE_NAME"
+			fi
+
+			local UPDATE_COMMAND="'repository_update $UPDATE_PATH'"
+
+			echo_w "Running update command: $UPDATE_COMMAND"
+			./vov -q run $UPDATE_COMMAND
+			;;
+
+		*)
+			echo_w "Unknown repo action."
+			;;
+	esac
+
+}
+
+
+
+###
 ### main
 ###
 
-echo
-echo_y "                                _    ______ _    __"
-echo_y "                               | |  / / __ \ |  / /"
-echo_y "                               | | / / / / / | / / "
-echo_y "                               | |/ / /_/ /| |/ /  "
-echo_y "                               |___/\____/ |___/   "
-echo
-echo_y "                                                    ...just VOV!"
-echo
-
+if [[ $1 == "-q" ]]; then
+	# quiet mode
+	shift
+else
+	echo
+	echo_y "                                _    ______ _    __"
+	echo_y "                               | |  / / __ \ |  / /"
+	echo_y "                               | | / / / / / | / / "
+	echo_y "                               | |/ / /_/ /| |/ /  "
+	echo_y "                               |___/\____/ |___/   "
+	echo
+	echo_y "                                                    ...just VOV!"
+	echo
+fi
 
 # Probe environment
 #
@@ -580,6 +636,13 @@ case "$IN_ACTION" in
 	run)
 		vagrant ssh -- bash -ic \'$@\'
 		;;
+
+	# Batch action with repositories
+
+	repo)
+		vov_repo "$@"
+		;;
+		
 
 	# Perform operation on a site
 	#
