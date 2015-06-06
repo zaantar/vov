@@ -631,7 +631,7 @@ case "$IN_ACTION" in
 	#
 
 	run)
-		run_command="'source ~/.bash_profile; $@'"
+		run_command="'source .bash_profile; source .bash_aliases; source .bashrc; $@'"
 		echo_w "Running command: $run_command"
 		vagrant ssh -- bash -ic $run_command
 		;;
