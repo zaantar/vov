@@ -68,6 +68,20 @@ function run_vv {
 }
 
 
+function array_contains() {
+    local n=$#
+    local value=${!n}
+    for ((i=1;i < $#;i++)) {
+        if [ "${!i}" == "${value}" ]; then
+            echo "y"
+            return 0
+        fi
+    }
+    echo "n"
+    return 1
+}
+
+
 
 # ******************************************************************************
 #		User input
@@ -340,11 +354,90 @@ function vov_install_link {
 #		vov repo
 # ******************************************************************************
 
+# Handler for the vov repo update command
+#
+# Usage: vov repo update [OPTIONS] [SITE_NAME]
+#
+# Options:
+#
+# --all
+#         Process the whole /srv/www directory.
+#
+# --has-root-repository
+#         Indicate that a single site has a repository in it's root. This repository
+#         will be updated as well but it's subdirectories will be processed, too.
+#
+# --verbose
+#         Turn on verbose mode for the underlying repository_update script.
+#
+function vov_repo_update {
+	
+	# read input arguments
+	local IS_ALL_SITES=0
+	local SITE_NAME="wordpress-default"
+	local HAS_ROOT_REPOSITORY=0
+	local IS_VERBOSE_MODE=0
 
-###
-### vov repo
-###
+	while [ ! -z "$1" ]; do
+		local input_arg="$1"
+		shift
 
+		case $input_arg in
+			--has-root-repository)
+				HAS_ROOT_REPOSITORY=1
+				;;
+			--all)
+				IS_ALL_SITES=1
+				;;
+			--verbose)
+				IS_VERBOSE_MODE=1
+				;;
+			*)
+				SITE_NAME="$input_arg"
+				;;
+		esac
+	done
+
+	# we know that some predefined sites have a repository in their root
+	local SITES_WITH_ROOT_REPOSITORY=("wordpress-develop" "wordpress-trunk")
+	if [ $(array_contains "${SITES_WITH_ROOT_REPOSITORY[@]}" "$SITE_NAME") == "y" ]; then
+		HAS_ROOT_REPOSITORY=1
+	fi
+
+	# build additional argument for the update command
+	local UPDATE_ARGS=""
+
+	if [[ $IS_VERBOSE_MODE == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --verbose"
+	fi
+
+	# Determine path that should be updated.
+	
+	# If no site name was given, it will default to "wordpress-default".
+	local UPDATE_PATH="/srv/www/$SITE_NAME"
+	if [[ $IS_ALL_SITES == 1 ]]; then
+		# We will update everything in the /srv/www directory
+		UPDATE_PATH="/srv/www"
+	elif [[ $SITE_NAME == "wordpress-develop" ]]; then
+		# Fix path for wordpress-develop, we know other subdirs will not contain anything updateable
+		UPDATE_PATH="/srv/www/wordpress-develop/src"
+	fi
+
+	local UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH"
+
+	# If there's a repository in the root of the update path, we will run the update command first normally
+	# and second with --only-subdirs. That way everything gets updated.
+	if [[ $HAS_ROOT_REPOSITORY == 1 ]]; then
+		UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH; repository_update --only-subdirs $UPDATE_ARGS $UPDATE_PATH"
+	fi
+	
+	./vov -q run "$UPDATE_COMMAND"
+}
+
+
+# Handler for the vov repo command
+#
+#
 function vov_repo {
 
 	local ACTION="$1"
@@ -352,35 +445,8 @@ function vov_repo {
 
 	case $ACTION in
 		update)
-
-			# read input arguments
-			local IS_ALL_SITES=0
-			local SITE_NAME="wordpress-default"
-
-			while [ ! -z "$1" ]; do
-				local input_arg="$1"
-				shift
-
-				case $input_arg in
-					--all)
-						IS_ALL_SITES=1
-						;;
-					*)
-						SITE_NAME="$input_arg"
-						;;
-				esac
-			done
-
-			if [[ $IS_ALL_SITES == 1 ]]; then
-				local UPDATE_PATH="/srv/www"
-			else
-				local UPDATE_PATH="/srv/www/$SITE_NAME"
-			fi
-
-			local UPDATE_COMMAND="repository_update $UPDATE_PATH"
-			./vov -q run "$UPDATE_COMMAND"
+			vov_repo_update "$@"
 			;;
-
 		*)
 			echo_w "Unknown repo action."
 			;;
@@ -804,7 +870,7 @@ case "$IN_ACTION" in
 esac
 
 # next time we will know if there is an upgrade available
-git fetch
+if_not_quiet git fetch
 
 # return from VOV_PATH
 cd - > /dev/null

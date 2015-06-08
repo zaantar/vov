@@ -7,7 +7,24 @@
 # This script recursively traverses given directories and looks for svn or git repositories. When a repo
 # is found, it is updated (svn up or git pull) if the update succeeds, it's subdirs are not traversed anymore.
 #
-# It accepts a list of paths as arguments. If none are provided, current directory is used instead.
+# It accepts some options and a list of paths as arguments. Anything that's not a valid option or it's argument is
+# considered to be a path. If no paths are provided, current directory is used instead.
+#
+# Options:
+#
+# --ignore-repository <repository-path>
+#         Given path will be handled as a normal path (e.g. it's subdirectories will be processed)
+#
+# --only-subdirs
+#		  Apply --ignore-repository on each of root paths.
+#
+# --verbose
+#         Turn on verbose output
+#
+# --
+#         Every argument after this will be considered a path.
+
+
 
 # Profit from our bash aliases, greet the user
 source ~/.bash_aliases
@@ -16,12 +33,38 @@ echo_w "repository_update"
 echo_y "Based on the svnup utility from Dylon Edwards <deltaecho@archlinux.us>"
 
 
+function array_contains {
+    local n=$#
+    local value=${!n}
+    for ((i=1;i < $#;i++)) {
+        if [ "${!i}" == "${value}" ]; then
+            echo "y"
+            return 0
+        fi
+    }
+    echo "n"
+    return 1
+}
+
+
+function if_verbose {
+	if [[ $VERBOSE_MODE == 1 ]]; then
+		local command="$1";
+		shift
+		local args="$@"
+		$command "$args"
+	fi
+}
+
+
 # Recursively update all subdirectories
 #
 # Accepts target path as first argument. Must not contain trailing slash.
 # Runs recursive_update on each subdirectory.
 function update_subdirs {
+
 	local target="$1"
+	if_verbose echo_g "Scanning $target"
 
 	for subdir in $( ls $target ); do
 		if [[ -d $target/$subdir ]]; then
@@ -39,37 +82,94 @@ function update_subdirs {
 function recursive_update {
 	local target="$1"
 
-	# If the target file contains a .svn file
-	if [[ -d $target/.svn ]]; then
-		echo_y "Subversion repository found at $target"
-		echo_g "Updating..."
-		# Update the target
-        svn up --force-interactive "$target" || {
-			# If the update fails, update each of its subdirectories
-			echo_w "Update failed. Trying to update subdirectories instead."
-            update_subdirs "$target"
-        }
-    # Look for a git repository
-	elif [[ -d $target/.git ]]; then
-		echo_y "Git repository found at $target"
-		echo_g "Pulling..."
-		git --work-tree "$target" --git-dir "$target/.git" pull || {
-			echo_w "Update failed. Trying to update subdirectories instead."
+	# continue with this repository only if it's not on the ignore list
+	if [ $(array_contains "${REPOSITORIES_TO_IGNORE[@]}" "$target") == "n" ]; then
+	
+		# If the target file contains a .svn file
+		if [[ -d $target/.svn ]]; then
+			echo_y "Subversion repository found at $target"
+			echo_g "Updating..."
+			# Update the target
+			svn up --force-interactive "$target" || {
+				# If the update fails, update each of its subdirectories
+				echo_w "Update failed. Trying to update subdirectories instead."
+				update_subdirs "$target"
+			}
+		# Look for a git repository
+		elif [[ -d $target/.git ]]; then
+			echo_y "Git repository found at $target"
+			echo_g "Pulling..."
+			git --work-tree "$target" --git-dir "$target/.git" pull || {
+				echo_w "Update failed. Trying to update subdirectories instead."
+				update_subdirs "$target"
+			}
+		# If the target file doesn't contain a .svn file
+		else
 			update_subdirs "$target"
-		}
-    # If the target file doesn't contain a .svn file
-    else
-        update_subdirs "$target"
-    fi
+		fi
+
+	else
+
+		# this one is being ignored
+
+		echo_y "Ignoring possible repository at $target. Trying to update subdirectories instead."
+		update_subdirs "$target"
+
+	fi
 }
 
-# Read arguments and use them as root directories for the recursive updates.
+
+
+# ******************************************************************************
+#		MAIN
+# ******************************************************************************
+
+REPOSITORIES_TO_IGNORE=()
+DIRS=()
+ONLY_SUBDIRS=0
+VERBOSE_MODE=0
+
+# Read arguments and parse them as options. Everything else will be used as root directories for the recursive updates.
 # If there are no arguments, use current directory.
-[[ $# == 0 ]] && dirs=($PWD) || dirs=($@)
+if [[ $# == 0 ]]; then
+	DIRS=($PWD)
+else
+	while [ ! -z "$1" ]; do
+		arg="$1"
+		shift
+		case "$arg" in
+			--ignore-repository)
+				REPOSITORIES_TO_IGNORE=("${REPOSITORIES_TO_IGNORE[@]}" "$1")
+				shift
+				;;
+			--only-subdirs)
+				ONLY_SUBDIRS=1
+				;;
+			--verbose)
+				VERBOSE_MODE=1
+				;;
+			--)
+				DIRS=("${DIRS[@]}" $@)
+				break
+				;;
+			*)
+				DIRS=("${DIRS[@]}" "$arg")
+		esac
+	done
+fi
+
+if_verbose echo_g "REPOSITORIES_TO_IGNORE: ${REPOSITORIES_TO_IGNORE[@]}"
+if_verbose echo_g "DIRS: ${DIRS[@]}"
 
 # Update the target directories
-for root_dir in ${dirs[@]}; do
-	recursive_update "$root_dir"
+for root_dir in ${DIRS[@]}; do
+
+	if [[ $ONLY_SUBDIRS == 1 ]]; then
+		update_subdirs "$root_dir"
+	else
+		recursive_update "$root_dir"
+	fi
+	
 done
 
 echo_w "Finished."
