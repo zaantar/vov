@@ -179,7 +179,17 @@ function rawurlencode {
 is_update_available () {
 	local THIS_VERSION=$1
 	local REPO_VERSION=$2
-	LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
+
+	case $VOV_OS in
+		osx)
+			# http://stackoverflow.com/questions/4493205/unix-sort-of-version-numbers
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -n 1)
+			;;
+		*)
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
+			;;
+	esac
+	
 	if [ $LATEST_VERSION == $THIS_VERSION ]; then
 		echo 0
 	else
@@ -503,22 +513,26 @@ fi
 IS_CYGWIN=0
 IS_LINUX=0
 IS_OSX=0
+VOV_OS="unknown"
 
 case `uname` in
 	
 	Linux)
 		echo_g "Linux, yaaay!"
 		IS_LINUX=1
+		VOV_OS="linux"
 		;;
 	darwin|Darwin)
 		echo_g "OS X. Please help me with testing your platform."
 		IS_OSX=1
+		VOV_OS="osx"
 		;;
 	*)
 		# Let's try uname -o. It might not be supported, but we have nothing to lose.
 		if [ `uname -o` == "Cygwin" ]; then
 			echo_g "Cygwin detected. Welcome, Windows user!"
 			IS_CYGWIN=1
+			VOV_OS="cygwin"
 		else
 			echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
 		fi
