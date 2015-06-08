@@ -211,6 +211,39 @@ function check_updates {
 }
 
 
+# because apple is evil
+# http://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac
+function readlink_f {
+	case $VOV_OS in
+	
+		osx)
+			TARGET_FILE=$1
+
+			cd `dirname $TARGET_FILE`
+			TARGET_FILE=`basename $TARGET_FILE`
+
+			# Iterate down a (possible) chain of symlinks
+			while [ -L "$TARGET_FILE" ]
+			do
+				TARGET_FILE=`readlink $TARGET_FILE`
+				cd `dirname $TARGET_FILE`
+				TARGET_FILE=`basename $TARGET_FILE`
+			done
+
+			# Compute the canonicalized name by finding the physical path 
+			# for the directory we're in and appending the target file.
+			PHYS_DIR=`pwd -P`
+			RESULT=$PHYS_DIR/$TARGET_FILE
+			echo $RESULT			
+			;;
+			
+		*)
+			readlink -f "$1"
+			;;
+	esac
+}
+
+
 function run_vv {
 	echo_w "Running vv (Variable VVV)..."
 	externals/vv/vv --about
@@ -552,7 +585,7 @@ fi
 # determine absolute path to this script
 # http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
 # http://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink
-VOV_PATH="$(dirname "$(readlink -f "$0")")"
+VOV_PATH="$(dirname "$(readlink_f "$0")")"
 echo_g "VOV_PATH is $VOV_PATH"
 
 # everything must happen in the VOV project path
