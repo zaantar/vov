@@ -44,7 +44,7 @@ function recursive_update {
 		echo_y "Subversion repository found at $target"
 		echo_g "Updating..."
 		# Update the target
-        svn up "$target" || {
+        svn up --force-interactive "$target" || {
 			# If the update fails, update each of its subdirectories
 			echo_w "Update failed. Trying to update subdirectories instead."
             update_subdirs "$target"
