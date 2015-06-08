@@ -17,6 +17,11 @@ COLOUR_RED='\033[91m'
 COLOUR_LIGHT_GRAY='\033[0;37m'
 
 
+# ******************************************************************************
+#		Universal helper functions
+# ******************************************************************************
+
+
 function echo_w {
     echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
 }
@@ -28,6 +33,40 @@ function echo_y {
 function echo_g {
 	echo -e "$COLOUR_LIGHT_GRAY$1$COLOUR_RESTORE"
 }
+
+
+function run_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin - we will not print anything
+		return
+	else
+		sudo echo "Superuser privileges granted."
+	fi
+}
+
+
+function maybe_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin
+		eval "$@"
+	else
+		sudo "$@"
+	fi
+}
+
+
+function run_vv {
+	echo_w "Running vv (Variable VVV)..."
+	externals/vv/vv --about
+	externals/vv/vv "$@"
+	echo
+}
+
+
+
+# ******************************************************************************
+#		User input
+# ******************************************************************************
 
 
 # Ask user a yes/no question and insist on an answer.
@@ -123,6 +162,11 @@ function prompt_for_credentials {
 }
 
 
+# ******************************************************************************
+#		vov init
+# ******************************************************************************
+
+
 function fix_permissions {
 	EXECUTABLE_FILES=(
 		config/homebin/*
@@ -136,25 +180,6 @@ function fix_permissions {
 	done
 }
 
-
-function maybe_sudo {
-	if [ "$IS_CYGWIN" == "1" ]; then
-		# sudo is not needed in cygwin
-		eval "$@"
-	else
-		sudo "$@"
-	fi
-}
-
-
-function run_sudo {
-	if [ "$IS_CYGWIN" == "1" ]; then
-		# sudo is not needed in cygwin - we will not print anything
-		return
-	else
-		sudo echo "Superuser privileges granted."
-	fi
-}
 
 
 # urlencode for git credentials
@@ -176,87 +201,9 @@ function rawurlencode {
 }
 
 
-is_update_available () {
-	local THIS_VERSION=$1
-	local REPO_VERSION=$2
-
-	case $VOV_OS in
-		osx)
-			# http://stackoverflow.com/questions/4493205/unix-sort-of-version-numbers
-			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -n 1)
-			;;
-		*)
-			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
-			;;
-	esac
-	
-	if [ "$LATEST_VERSION" = "$THIS_VERSION" ]; then
-		echo 0
-	else
-		echo 1
-	fi
-}
-
-
-function check_updates {
-	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-
-	echo_g "You are on the $CURRENT_BRANCH branch."
-	
-	local LAST_TAG=`git describe --abbrev=0 --tags`	
-	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
-	if [ "$UPDATE_EXISTS" = 1 ]; then
-		echo_y "There is a new version of VOV available: $LAST_TAG"
-	fi
-}
-
-
-# because apple is evil
-# http://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac
-function readlink_f {
-	case $VOV_OS in
-	
-		osx)
-			TARGET_FILE=$1
-
-			cd `dirname $TARGET_FILE`
-			TARGET_FILE=`basename $TARGET_FILE`
-
-			# Iterate down a (possible) chain of symlinks
-			while [ -L "$TARGET_FILE" ]
-			do
-				TARGET_FILE=`readlink $TARGET_FILE`
-				cd `dirname $TARGET_FILE`
-				TARGET_FILE=`basename $TARGET_FILE`
-			done
-
-			# Compute the canonicalized name by finding the physical path 
-			# for the directory we're in and appending the target file.
-			PHYS_DIR=`pwd -P`
-			RESULT=$PHYS_DIR/$TARGET_FILE
-			echo $RESULT			
-			;;
-			
-		*)
-			readlink -f "$1"
-			;;
-	esac
-}
-
-
-function run_vv {
-	echo_w "Running vv (Variable VVV)..."
-	externals/vv/vv --about
-	externals/vv/vv "$@"
-	echo
-}
-
-
 ###
 ### vov init
 ###
-
-# todo install vagrant plugins (add option to disable this)
 
 function vov_init {
 
@@ -351,6 +298,96 @@ function vov_init {
 }
 
 
+# ******************************************************************************
+#		vov install-link
+# ******************************************************************************
+
+
+###
+### vov install-link
+###
+
+function vov_install_link {
+
+	run_sudo
+
+	# Confirmed that this works on linux and Cygwin 
+	VOV_LINK="/usr/local/bin/vov"
+	
+	echo_w "Generating symlink to vov in $VOV_LINK..."
+
+	if [ -e "$VOV_LINK" ]; then
+		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
+		if [ "$IN_CONTINUE" == "1" ]; then
+			maybe_sudo rm "$VOV_LINK"
+		else
+			echo_w "Aborted."
+			return
+		fi
+	fi
+	
+	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
+	echo_w "Done."
+}
+
+
+# ******************************************************************************
+#		vov repo
+# ******************************************************************************
+
+
+###
+### vov repo
+###
+
+function vov_repo {
+
+	local ACTION="$1"
+	shift
+
+	case $ACTION in
+		update)
+
+			# read input arguments
+			local IS_ALL_SITES=0
+			local SITE_NAME="wordpress-default"
+
+			while [ ! -z "$1" ]; do
+				local input_arg="$1"
+				shift
+
+				case $input_arg in
+					--all)
+						IS_ALL_SITES=1
+						;;
+					*)
+						SITE_NAME="$input_arg"
+						;;
+				esac
+			done
+
+			if [[ $IS_ALL_SITES == 1 ]]; then
+				local UPDATE_PATH="/srv/www"
+			else
+				local UPDATE_PATH="/srv/www/$SITE_NAME"
+			fi
+
+			local UPDATE_COMMAND="repository_update $UPDATE_PATH"
+			./vov -q run "$UPDATE_COMMAND"
+			;;
+
+		*)
+			echo_w "Unknown repo action."
+			;;
+	esac
+
+}
+
+
+
+# ******************************************************************************
+#		vov site
+# ******************************************************************************
 
 
 ###
@@ -425,6 +462,7 @@ function vov_create_site {
 	echo_w "vv finished."
 }
 
+
 ###
 ### vov site remove
 ###
@@ -442,86 +480,88 @@ function vov_remove_site {
 }
 
 
-###
-### vov install-link
-###
-
-function vov_install_link {
-
-	run_sudo
-
-	# Confirmed that this works on linux and Cygwin 
-	VOV_LINK="/usr/local/bin/vov"
-	
-	echo_w "Generating symlink to vov in $VOV_LINK..."
-
-	if [ -e "$VOV_LINK" ]; then
-		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
-		if [ "$IN_CONTINUE" == "1" ]; then
-			maybe_sudo rm "$VOV_LINK"
-		else
-			echo_w "Aborted."
-			return
-		fi
-	fi
-	
-	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
-	echo_w "Done."
-}
+# ******************************************************************************
+#		Helper functions for main
+# ******************************************************************************
 
 
-###
-### vov repo
-###
+is_update_available () {
+	local THIS_VERSION=$1
+	local REPO_VERSION=$2
 
-function vov_repo {
-
-	local ACTION="$1"
-	shift
-
-	case $ACTION in
-		update)
-
-			# read input arguments
-			local IS_ALL_SITES=0
-			local SITE_NAME="wordpress-default"
-
-			while [ ! -z "$1" ]; do
-				local input_arg="$1"
-				shift
-
-				case $input_arg in
-					--all)
-						IS_ALL_SITES=1
-						;;
-					*)
-						SITE_NAME="$input_arg"
-						;;
-				esac
-			done
-
-			if [[ $IS_ALL_SITES == 1 ]]; then
-				local UPDATE_PATH="/srv/www"
-			else
-				local UPDATE_PATH="/srv/www/$SITE_NAME"
-			fi
-
-			local UPDATE_COMMAND="repository_update $UPDATE_PATH"
-			./vov -q run "$UPDATE_COMMAND"
+	case $VOV_OS in
+		osx)
+			# http://stackoverflow.com/questions/4493205/unix-sort-of-version-numbers
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -n 1)
 			;;
-
 		*)
-			echo_w "Unknown repo action."
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
 			;;
 	esac
+	
+	if [ "$LATEST_VERSION" = "$THIS_VERSION" ]; then
+		echo 0
+	else
+		echo 1
+	fi
+}
 
+
+function check_updates {
+	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+	echo_g "You are on the $CURRENT_BRANCH branch."
+	
+	local LAST_TAG=`git describe --abbrev=0 --tags`	
+	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
+	if [ "$UPDATE_EXISTS" = 1 ]; then
+		echo_y "There is a new version of VOV available: $LAST_TAG"
+	fi
+}
+
+
+# because apple is evil
+# http://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac
+function readlink_f {
+	case $VOV_OS in
+	
+		osx)
+			TARGET_FILE=$1
+
+			cd `dirname $TARGET_FILE`
+			TARGET_FILE=`basename $TARGET_FILE`
+
+			# Iterate down a (possible) chain of symlinks
+			while [ -L "$TARGET_FILE" ]
+			do
+				TARGET_FILE=`readlink $TARGET_FILE`
+				cd `dirname $TARGET_FILE`
+				TARGET_FILE=`basename $TARGET_FILE`
+			done
+
+			# Compute the canonicalized name by finding the physical path 
+			# for the directory we're in and appending the target file.
+			PHYS_DIR=`pwd -P`
+			RESULT=$PHYS_DIR/$TARGET_FILE
+			echo $RESULT			
+			;;
+			
+		*)
+			readlink -f "$1"
+			;;
+	esac
 }
 
 
 
-###
-### main
-###
+
+
+
+# ******************************************************************************
+#		MAIN
+# ******************************************************************************
+
+
 
 if [[ $1 == "-q" ]]; then
 	# quiet mode
