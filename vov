@@ -57,8 +57,13 @@ function maybe_sudo {
 
 function run_vv {
 	echo_w "Running vv (Variable VVV)..."
-	externals/vv/vv --about
+
+	# give them some credit
+	if_not_quiet externals/vv/vv --about
+
+	# run the actual command
 	externals/vv/vv "$@"
+	
 	echo
 }
 
@@ -510,12 +515,12 @@ is_update_available () {
 function check_updates {
 	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
-	echo_g "You are on the $CURRENT_BRANCH branch."
+	if_not_quiet echo_g "You are on the $CURRENT_BRANCH branch."
 	
 	local LAST_TAG=`git describe --abbrev=0 --tags`	
 	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
 	if [ "$UPDATE_EXISTS" = 1 ]; then
-		echo_y "There is a new version of VOV available: $LAST_TAG"
+		if_not_quiet echo_y "There is a new version of VOV available: $LAST_TAG"
 	fi
 }
 
@@ -553,8 +558,14 @@ function readlink_f {
 }
 
 
-
-
+function if_not_quiet {
+	if [[ $IS_QUIET_MODE == 0 ]]; then
+		local command="$1";
+		shift
+		local args="$@"
+		$command "$args"
+	fi
+}
 
 
 # ******************************************************************************
@@ -565,18 +576,23 @@ function readlink_f {
 
 if [[ $1 == "-q" ]]; then
 	# quiet mode
+	IS_QUIET_MODE=1
 	shift
 else
-	echo
-	echo_y "                                _    ______ _    __"
-	echo_y "                               | |  / / __ \ |  / /"
-	echo_y "                               | | / / / / / | / / "
-	echo_y "                               | |/ / /_/ /| |/ /  "
-	echo_y "                               |___/\____/ |___/   "
-	echo
-	echo_y "                                                    ...just VOV!"
-	echo
+	IS_QUIET_MODE=0
 fi
+
+
+if_not_quiet echo
+if_not_quiet echo_y "                                _    ______ _    __"
+if_not_quiet echo_y "                               | |  / / __ \ |  / /"
+if_not_quiet echo_y "                               | | / / / / / | / / "
+if_not_quiet echo_y "                               | |/ / /_/ /| |/ /  "
+if_not_quiet echo_y "                               |___/\____/ |___/   "
+if_not_quiet echo
+if_not_quiet echo_y "                                                    ...just VOV!"
+if_not_quiet echo
+
 
 # Probe environment
 #
@@ -591,23 +607,23 @@ VOV_OS="unknown"
 case `uname` in
 	
 	Linux)
-		echo_g "Linux, yaaay!"
+		if_not_quiet echo_g "Linux, yaaay!"
 		IS_LINUX=1
 		VOV_OS="linux"
 		;;
 	darwin|Darwin)
-		echo_g "OS X. Please help me with testing your platform."
+		if_not_quiet echo_g "OS X. Please help me with testing your platform."
 		IS_OSX=1
 		VOV_OS="osx"
 		;;
 	*)
 		# Let's try uname -o. It might not be supported, but we have nothing to lose.
 		if [ `uname -o` == "Cygwin" ]; then
-			echo_g "Cygwin detected. Welcome, Windows user!"
+			if_not_quiet echo_g "Cygwin detected. Welcome, Windows user!"
 			IS_CYGWIN=1
 			VOV_OS="cygwin"
 		else
-			echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
+			if_not_quiet echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
 		fi
 		;;
 esac
@@ -618,7 +634,7 @@ MACHINE_HW_NAME=`uname -m`
 if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
 	IS_32BIT_HOST=0
 else
-	echo_g "This is a 32bit machine."
+	if_not_quiet echo_g "This is a 32bit machine."
 	IS_32BIT_HOST=1
 fi
 
@@ -626,7 +642,7 @@ fi
 # http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
 # http://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink
 VOV_PATH="$(dirname "$(readlink_f "$0")")"
-echo_g "VOV_PATH is $VOV_PATH"
+if_not_quiet echo_g "VOV_PATH is $VOV_PATH"
 
 # everything must happen in the VOV project path
 cd "$VOV_PATH"
@@ -641,7 +657,7 @@ check_updates
 IN_ACTION="$1"
 shift
 
-echo
+if_not_quiet echo
 
 case "$IN_ACTION" in
 
