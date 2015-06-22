@@ -110,6 +110,7 @@ apt_package_check_list=(
 	fortune
 	jq # parsing and querying JSON, used by vov_checkout
 	figlet # text banners in terminal
+	git-flow # used in toolset plugins
 )
 
 echo "Check for apt packages to install..."
