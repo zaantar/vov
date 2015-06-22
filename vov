@@ -345,7 +345,7 @@ function vov_install_link {
 		fi
 	fi
 	
-	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
+	maybe_sudo ln -s "$VOV_PATH/vov" "$VOV_LINK"
 	echo_w "Done."
 }
 
@@ -504,6 +504,9 @@ function vov_create_site {
 				;;
 			--clear)
 				IS_CLEAR_SITE=1
+				shift
+				;;
+			*)
 				shift
 				;;
 		esac
