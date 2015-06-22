@@ -376,6 +376,7 @@ if [[ ! -d /home/vagrant/bin ]]; then
 	as_vagrant mkdir /home/vagrant/bin
 fi
 as_vagrant rsync -rvzh --delete /srv/config/homebin/ /home/vagrant/bin/
+chmod +x /home/vagrant/bin/*
 
 echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
 echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
