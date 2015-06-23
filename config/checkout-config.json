@@ -2,49 +2,49 @@
 	"resources": [
 		{
 			"name" : "Types",
-			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/cck/trunk/",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git",
+			"source" : "git.onthegosystems.com/toolset/types.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/types",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate types"
 		},
 		{
 			"name" : "Views",
-			"type" : "svn", 
-			"source" : "https://www.onthegosystems.com/misc_svn/views/trunk",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git", 
+			"source" : "git.onthegosystems.com/toolset/views.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/wp-views",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate wp-views"
 		},
 		{
 			"name" : "CRED",
-			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/crud/trunk_new",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git",
+			"source" : "git.onthegosystems.com/toolset/cred.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/cred-frontend-editor",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate cred-frontend-editor"
 		},
 		{
 			"name" : "Layouts",
-			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/layouts/core/trunk",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git",
+			"source" : "git.onthegosystems.com/toolset/layouts.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/layouts",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate layouts"
 		},
 		{
 			"name" : "Access",
-			"type" : "svn",
-			"source" : "https://www.onthegosystems.com/misc_svn/types-access/trunk",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git",
+			"source" : "git.onthegosystems.com/toolset/access.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/types-access",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate types-access"
 		},
 		{
 			"name" : "Module Manager",
-			"type" : "svn",
-			"source" :	"https://www.onthegosystems.com/misc_svn/module_manager/trunk",
-			"credentials" : "onthegosystems_com_misc_svn",
+			"type" : "git",
+			"source" :	"git.onthegosystems.com/toolset/module-manager.git",
+			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/toolset-module-manager",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate toolset-module-manager"
 		},

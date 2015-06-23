@@ -110,6 +110,7 @@ apt_package_check_list=(
 	fortune
 	jq # parsing and querying JSON, used by vov_checkout
 	figlet # text banners in terminal
+	git-flow # used in toolset plugins
 )
 
 echo "Check for apt packages to install..."
@@ -180,7 +181,7 @@ if [[ $ping_result == "Connected" ]]; then
 		apt-get install --assume-yes ${apt_package_install_list[@]}
 		
 		# keep up-to-date
-		apt-get upgrade --assume-yes
+		# apt-get upgrade --assume-yes
 		
 		# Uninstal packages that are no longer needed
 		apt-get autoremove --assume-yes

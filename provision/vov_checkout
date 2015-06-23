@@ -156,6 +156,9 @@ figlet -cf slant VOV
 echo
 echo "vov_checkout starting..."
 
+# default plugins from wordpress.org
+install_default_plugins
+
 RESOURCE_COUNT=`jqc '.resources | length'`
 
 echo "Found $RESOURCE_COUNT resources."
@@ -179,10 +182,10 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	else
 		case $RES_TYPE in
 			svn)
-				handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION" &
+				handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION" 
 				;;
 			git)
-				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION" &
+				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION" 
 				;;
 			zip)
 				handle_zip_repository $I "$RES_SOURCE" &
@@ -198,9 +201,6 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	
 	let I=I+1
 done
-
-# default plugins from wordpress.org
-install_default_plugins
 
 echo "Waiting for vov_checkout subcommands..."
 wait
