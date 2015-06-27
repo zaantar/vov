@@ -93,12 +93,19 @@ function handle_svn_repository {
 function install_default_plugins() { 
 	echo "Installing and activating default plugins..."
 	
+	local PLUGINS_DIR=`sudo --u vagrant -- wp eval 'echo WP_CONTENT_DIR . "/plugins";'`
+	
 	# Skip comments and empty lines	
 	grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
 		# Iterate through all plugin names
 		while read plugin_name; do
 			echo "Installing $plugin_name..."
-			sudo --u vagrant -- wp plugin install "$plugin_name" --activate &
+			
+			if [ -d "$PLUGINS_DIR/$plugin_name" ]; then
+				echo "Destination already exists. Skipping."
+			else
+				sudo --u vagrant -- wp plugin install "$plugin_name" --activate &
+			fi
 		done 
 	}
 }
