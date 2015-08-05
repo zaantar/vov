@@ -68,7 +68,7 @@ function update_subdirs {
 
 	for subdir in $( ls $target ); do
 		if [[ -d $target/$subdir ]]; then
-			recursive_update "$target/$subdir" &
+			recursive_update "$target/$subdir"
 		fi
 	done;
 }
@@ -93,19 +93,24 @@ function recursive_update {
 			svn up --force-interactive "$target" || {
 				# If the update fails, update each of its subdirectories
 				echo_w "Update failed. Trying to update subdirectories instead."
-				update_subdirs "$target"
+				update_subdirs "$target" 
 			} 
 		# Look for a git repository
 		elif [[ -d $target/.git ]]; then
 			echo_y "Git repository found at $target"
 			echo_g "Pulling..."
-			git --work-tree "$target" --git-dir "$target/.git" pull || {
+			#cd "$target"
+			#git pull
+			git --work-tree "$target" --git-dir "$target/.git" pull
+			local git_ret="$?"
+			echo "Git returned $git_ret."
+			if [[ $git_ret != 0 ]]; then 
 				echo_w "Update failed. Trying to update subdirectories instead."
-				update_subdirs "$target"
-			} 
+				update_subdirs "$target" 
+			fi
 		# If the target file doesn't contain a .svn file
 		else
-			update_subdirs "$target"
+			update_subdirs "$target" 
 		fi
 
 	else
@@ -113,7 +118,7 @@ function recursive_update {
 		# this one is being ignored
 
 		echo_y "Ignoring possible repository at $target. Trying to update subdirectories instead."
-		update_subdirs "$target"
+		update_subdirs "$target" 
 
 	fi
 }
