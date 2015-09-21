@@ -131,7 +131,10 @@ function handle_git_repository {
 	
 	echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
 	sudo -u vagrant -i -- git clone "$GIT_SRC" "$RES_DESTINATION" 
+	
+	cd "$RES_DESTINATION"
 	run_afterwards_command "$I"
+	cd -
 
 	#echo 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > gitssh
 	#chmod +x ssh
