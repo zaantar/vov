@@ -46,15 +46,14 @@
 			"source" :	"git.onthegosystems.com/toolset/module-manager.git",
 			"credentials" : "git_onthegosystems_com",
 			"destination" : "wp-content/plugins/toolset-module-manager",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate toolset-module-manager' vagrant"
+			"afterwards" : "su -c 'wp plugin activate toolset-module-manager' vagrant"
 		},
 		{
 			"name" : "Toolset Starter",
 			"type" : "git",
 			"source" :	"git.onthegosystems.com/reference-sites/toolset-starter.git",
 			"credentials" : "git_onthegosystems_com",
-			"destination" : "wp-content/themes/toolset-starter",
-			"afterwards" : "sudo -u vagrant -- wp theme activate toolset-starter"
+			"destination" : "wp-content/themes/toolset-starter"
 		},
 		{
 			"name" : "SitePress Multilingual CMS",
