@@ -78,7 +78,7 @@ alias ack='cuthere; ack-grep'
 
 
 ###
-### subversion
+### version control
 ###
 
 # i never remember this one
@@ -89,6 +89,9 @@ alias svnlog='svn log | head -n 50'
 
 # too gray!
 alias svndiff='svn diff | colourdiff'
+
+# composer update
+alias cu='composer update --no-autoloader'
 
 
 ###
