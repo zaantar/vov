@@ -177,7 +177,54 @@ function prompt_for_credentials {
 		fi
 	done
 
-	eval $RET_PASSWORD="\"$PASSWORD_FIRST\""
+	eval $RET_PASSWORD="\"$PASSWORD_FIRST\"" 
+}
+
+
+# ******************************************************************************
+#		vov key
+# ******************************************************************************
+
+
+function vov_key {
+	
+	local KEY_FILE="$VOV_PATH/config/ssh/icl_rsa";
+	
+	# check if keys already exist
+	if [ -f "$KEY_FILE" ]; then
+		yes_no_question "The key file already exists. Are you sure you want to generate a new key? [y/N]" 0 CERT_IS_OVERWRITE
+		if [ $CERT_IS_OVERWRITE == 0 ]; then
+			return
+		fi
+	fi
+	
+	
+	echo_w "Generating SSH keys..."
+	
+	local EMAILS_MATCH=0
+	
+	until [ $EMAILS_MATCH == 1 ]; do
+		read -p "Please enter your e-mail address at icanlocalize.com: " CERT_IN_NAME;
+		read -p "Please enter your e-mail address again: " CERT_IN_NAME_2;
+	
+		echo
+		
+		if [ "$CERT_IN_NAME" == "$CERT_IN_NAME_2" ]; then
+			EMAILS_MATCH=1
+		else
+			echo "E-mail addresses don't match. Please repeat."
+		fi
+	done
+	
+	ssh-keygen -t rsa -b 4096 -C "$CERT_IN_NAME" -f "$KEY_FILE"
+	
+	echo
+	echo_w "Keys generated to $KEY_FILE."
+	echo_y "Now you need to add the SSH key to Gitlab. Please go to "
+	echo_y "https://git.onthegosystems.com/profile/keys and add this key:"
+	echo
+	cat "$KEY_FILE.pub"
+	echo
 }
 
 
@@ -250,6 +297,8 @@ function vov_init {
 	prompt_for_credentials "Please enter SVN credentials for onthegosystems.com/misc_svn:" "Press only Enter to skip this step." IN_IS_SVN IN_SVN_USERNAME IN_SVN_PASSWORD
 
 	prompt_for_credentials "Please enter GIT credentials for git.onthegosystems.com:" "Press only Enter to skip this step." IN_IS_GIT IN_GITLAB_USERNAME IN_GITLAB_PASSWORD
+	
+	# TODO vov key
 		
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 	echo
@@ -860,6 +909,15 @@ case "$IN_ACTION" in
 
 	install-link)
 		vov_install_link
+		;;
+		
+		
+	# Generate SSH keys for git.onthegosystems.com
+	#
+	#
+	
+	key)
+		vov_key
 		;;
 
 	# Unrecognized command

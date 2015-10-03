@@ -367,23 +367,31 @@ function as_vagrant {
 }
 
 as_vagrant cp /srv/config/bash_profile /home/vagrant/.bash_profile
+echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
+
 as_vagrant cp /srv/config/bash_aliases /home/vagrant/.bash_aliases
+echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
+
 as_vagrant cp /srv/config/vimrc /home/vagrant/.vimrc
+echo " * Copied /srv/config/vimrc                             to /home/vagrant/.vimrc"
+
 if [[ ! -d /home/vagrant/.subversion ]]; then
 	as_vagrant mkdir /home/vagrant/.subversion
 fi
 as_vagrant cp /srv/config/subversion-servers /home/vagrant/.subversion/servers
+echo " * Copied /srv/config/subversion-servers                to /home/vagrant/.subversion/servers"
+
 if [[ ! -d /home/vagrant/bin ]]; then
 	as_vagrant mkdir /home/vagrant/bin
 fi
 as_vagrant rsync -rvzh --delete /srv/config/homebin/ /home/vagrant/bin/
 chmod +x /home/vagrant/bin/*
-
-echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
-echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
-echo " * Copied /srv/config/vimrc                             to /home/vagrant/.vimrc"
-echo " * Copied /srv/config/subversion-servers                to /home/vagrant/.subversion/servers"
 echo " * rsync'd /srv/config/homebin                          to /home/vagrant/bin"
+
+as_vagrant cp -R --remove-destination /srv/config/ssh/. /home/vagrant/.ssh
+as_vagrant chmod og-wx,og+r /home/vagrant/.ssh/*
+as_vagrant chmod u+rw,og-rwx /home/vagrant/.ssh/icl_rsa
+echo " * Copied /srv/config/ssh                               to /home/vagrant/.ssh"
 
 # If a bash_prompt file exists in the VVV config/ directory, copy to the VM.
 if [[ -f /srv/config/bash_prompt ]]; then
