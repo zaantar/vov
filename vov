@@ -278,7 +278,6 @@ function vov_init {
 	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"\n'
 	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
 	CONFIG_TWO_CPUS='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--cpus", 2]\nend\n'
-	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
     
 	# user input
@@ -293,8 +292,6 @@ function vov_init {
 	yes_no_question "Activate low-memory mode for the box? [y/N]" 0 IN_LOWMEM_BOX
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
 	yes_no_question "Should the box have two CPU cores instead of one? [y/N]" 0 IN_TWO_CPUS
-
-	prompt_for_credentials "Please enter SVN credentials for onthegosystems.com/misc_svn:" "Press only Enter to skip this step." IN_IS_SVN IN_SVN_USERNAME IN_SVN_PASSWORD
 
 	prompt_for_credentials "Please enter GIT credentials for git.onthegosystems.com:" "Press only Enter to skip this step." IN_IS_GIT IN_GITLAB_USERNAME IN_GITLAB_PASSWORD
 	
@@ -320,13 +317,6 @@ function vov_init {
 
 	fi
 	
-	
-	# write SVN credentials into the appropriate file
-	if [ $IN_IS_SVN == 1 ]; then
-		echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
-		echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
-	fi
-
 	# write Gitlab credentials
 	if [ $IN_IS_GIT == 1 ]; then
 		echo_w "Saving GIT credentials for git.onthegosystems.com..."
