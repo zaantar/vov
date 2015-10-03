@@ -406,6 +406,13 @@ echo -e "\nFix sshd configuration..."
 
 sed -i '/AcceptEnv/c\#AcceptEnv' /etc/ssh/sshd_config
 
+# Configure git
+#
+#
+echo -e "\nConfiguring git..."
+# http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
+git config --global core.autocrlf input
+
 # RESTART SERVICES
 #
 # Make sure the services we expect to be running are running.
