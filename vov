@@ -295,7 +295,7 @@ function vov_init {
 
 	prompt_for_credentials "Please enter GIT credentials for git.onthegosystems.com:" "Press only Enter to skip this step." IN_IS_GIT IN_GITLAB_USERNAME IN_GITLAB_PASSWORD
 	
-	# TODO vov key
+	yes_no_question "Generate a new SSL key for GitLab? (you can use 'vov key' command later) [y/N]" 0 IN_GENERATE_SSL_KEY
 		
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 	echo
@@ -348,6 +348,12 @@ function vov_init {
 	# fix permissions for scripts
 	echo_w "Fixing permissions for executable files..."
 	fix_permissions
+
+	if [ "$IN_GENERATE_SSL_KEY" == "1" ];
+	then
+		echo_w "Running vov key..."
+		vov key
+	fi
 
 	echo_w "Finished."
 	echo
@@ -921,7 +927,7 @@ case "$IN_ACTION" in
 esac
 
 # next time we will know if there is an upgrade available
-if_not_quiet git fetch
+#if_not_quiet git -c core.askpass=false fetch
 
 # return from VOV_PATH
 cd - > /dev/null
