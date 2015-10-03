@@ -99,11 +99,17 @@ function recursive_update {
 		elif [[ -d $target/.git ]]; then
 			echo_y "Git repository found at $target"
 			echo_g "Pulling..."
-			#cd "$target"
-			#git pull
+			cd "$target"
+			
 			git --work-tree "$target" --git-dir "$target/.git" pull
 			local git_ret="$?"
 			echo "Git returned $git_ret."
+			
+			composer update --no-autoloader
+			local composer_ret="$?"
+			echo "Composer returned $composer_ret"
+			
+			cd -
 			if [[ $git_ret != 0 ]]; then 
 				echo_w "Update failed. Trying to update subdirectories instead."
 				update_subdirs "$target" 
