@@ -23,6 +23,10 @@
 /config/homebin/vagrant_suspend_custom
 /config/homebin/vagrant_destroy_custom
 
+# Ignore personal SSL certificate
+/config/ssh/icl_rsa
+/config/ssh/icl_rsa.pub
+
 # No need to share individual site configs with each other
 /config/nginx-config/sites/*.conf
 
