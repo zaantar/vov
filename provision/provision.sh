@@ -130,6 +130,27 @@ for pkg in "${apt_package_check_list[@]}"; do
 	fi
 done
 
+# Read custom provisioning configuration
+#
+#
+local provision_config_file="/vagrant/provision/config"
+
+typeset -A provision_config # init array
+local provision_config=( # set default values in config array
+    [skip-trunk-site-provisioning]=0
+    [skip-develop-site-provisioning]=0
+)
+
+while read line
+do
+    if echo $line | grep -F = &>/dev/null
+    then
+        local varname=$(echo "$line" | cut -d '=' -f 1)
+        provision_config[$varname]=$(echo "$line" | cut -d '=' -f 2-)
+    fi
+done < "$provision_config_file"
+
+
 # MySQL
 #
 # Use debconf-set-selections to specify the default password for the root MySQL
@@ -616,12 +637,13 @@ PHP
 	fi;
 
 	# Checkout, install and configure WordPress trunk via core.svn
-	if [[ ! -d /srv/www/wordpress-trunk ]]; then
-		echo "Checking out WordPress trunk from core.svn, see https://core.svn.wordpress.org/trunk"
-		svn checkout https://core.svn.wordpress.org/trunk/ /srv/www/wordpress-trunk
-		cd /srv/www/wordpress-trunk
-		echo "Configuring WordPress trunk..."
-		wp core config --dbname=wordpress_trunk --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+	if [[ ${provision_config[skip-trunk-site-provisioning]} == 0 ]]; then
+		if [[ ! -d /srv/www/wordpress-trunk ]]; then
+			echo "Checking out WordPress trunk from core.svn, see https://core.svn.wordpress.org/trunk"
+			svn checkout https://core.svn.wordpress.org/trunk/ /srv/www/wordpress-trunk
+			cd /srv/www/wordpress-trunk
+			echo "Configuring WordPress trunk..."
+			wp core config --dbname=wordpress_trunk --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
 // Match any requests made via xip.io.
 if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(local.wordpress-trunk.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(.xip.io)\z/', \$_SERVER['HTTP_HOST'] ) ) {
 	define( 'WP_HOME', 'http://' . \$_SERVER['HTTP_HOST'] );
@@ -630,22 +652,28 @@ if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(local.wordpress-trunk.)\d
 
 define( 'WP_DEBUG', true );
 PHP
-		echo "Installing WordPress trunk..."
-		wp core install --url=local.wordpress-trunk.dev --quiet --title="Local WordPress Trunk Dev" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
-	else
-		echo "Updating WordPress trunk..."
-		cd /srv/www/wordpress-trunk
-		svn up
+			echo "Installing WordPress trunk..."
+			wp core install --url=local.wordpress-trunk.dev --quiet --title="Local WordPress Trunk Dev" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
+		else
+			echo "Updating WordPress trunk..."
+			cd /srv/www/wordpress-trunk
+			svn up
+		fi
+		wp_install_otgs_resources "WordPress trunk"
 	fi
-	wp_install_otgs_resources "WordPress trunk"
 
-	# Checkout, install and configure WordPress trunk via develop.svn
-	if [[ ! -d /srv/www/wordpress-develop ]]; then
-		echo "Checking out WordPress trunk from develop.svn, see https://develop.svn.wordpress.org/trunk"
-		svn checkout https://develop.svn.wordpress.org/trunk/ /srv/www/wordpress-develop
-		cd /srv/www/wordpress-develop/src/
-		echo "Configuring WordPress develop..."
-		wp core config --dbname=wordpress_develop --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+
+
+
+	if [[ ${provision_config[skip-develop-site-provisioning]} == 0 ]]; then
+
+		# Checkout, install and configure WordPress trunk via develop.svn
+		if [[ ! -d /srv/www/wordpress-develop ]]; then
+			echo "Checking out WordPress trunk from develop.svn, see https://develop.svn.wordpress.org/trunk"
+			svn checkout https://develop.svn.wordpress.org/trunk/ /srv/www/wordpress-develop
+			cd /srv/www/wordpress-develop/src/
+			echo "Configuring WordPress develop..."
+			wp core config --dbname=wordpress_develop --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
 // Match any requests made via xip.io.
 if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(src|build)(.wordpress-develop.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(.xip.io)\z/', \$_SERVER['HTTP_HOST'] ) ) {
 	define( 'WP_HOME', 'http://' . \$_SERVER['HTTP_HOST'] );
@@ -658,35 +686,39 @@ if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(src|build)(.wordpress-dev
 
 define( 'WP_DEBUG', true );
 PHP
-		echo "Installing WordPress develop..."
-		wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
-		cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
-		cd /srv/www/wordpress-develop/
-		echo "Running npm install for the first time, this may take several minutes..."
-		npm --verbose install 2>&1 | process_npm_verbose_output
-	else
-		echo "Updating WordPress develop..."
-		cd /srv/www/wordpress-develop/
-		if [[ -e .svn ]]; then
-			svn up
+			echo "Installing WordPress develop..."
+			wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
+			cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
+			cd /srv/www/wordpress-develop/
+			echo "Running npm install for the first time, this may take several minutes..."
+			npm --verbose install 2>&1 | process_npm_verbose_output
 		else
-			if [[ $(git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
-				git pull --no-edit git://develop.git.wordpress.org/ master
+			echo "Updating WordPress develop..."
+			cd /srv/www/wordpress-develop/
+			if [[ -e .svn ]]; then
+				svn up
 			else
-				echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
+				if [[ $(git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
+					git pull --no-edit git://develop.git.wordpress.org/ master
+				else
+					echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
+				fi
 			fi
+			echo "Updating npm packages..."
+			npm --verbose install 2>&1 | process_npm_verbose_output
 		fi
-		echo "Updating npm packages..."
-		npm --verbose install 2>&1 | process_npm_verbose_output
-	fi
-	cd /srv/www/wordpress-develop/src/
-	wp_install_otgs_resources "WordPress develop"
+		cd /srv/www/wordpress-develop/src/
+		wp_install_otgs_resources "WordPress develop"
 
-	if [[ ! -d /srv/www/wordpress-develop/build ]]; then
-		echo "Initializing grunt in WordPress develop... This may take a few moments."
-		cd /srv/www/wordpress-develop/
-		grunt
+		if [[ ! -d /srv/www/wordpress-develop/build ]]; then
+			echo "Initializing grunt in WordPress develop... This may take a few moments."
+			cd /srv/www/wordpress-develop/
+			grunt
+		fi
 	fi
+
+
+
 
 	# Download phpMyAdmin
 	if [[ ! -d /srv/www/default/database-admin ]]; then
