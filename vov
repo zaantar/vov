@@ -281,6 +281,7 @@ function vov_init {
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
     
 	# user input
+	yes_no_question "Do you want to create symlink to this vov script? (strongly recommended) [Y/n]" 1 IN_INSTALL_LINK
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 
 	if [ "$IS_32BIT_HOST" == "1" ]; then
@@ -305,7 +306,11 @@ function vov_init {
 	then
 		exit
 	fi
-	
+
+	# run vov install-link
+	if [ "$IN_INSTALL_LINK" = "1" ]; then
+		vov_install_link
+	fi
 	
 	# install vagrant plugins
 	if [ "$IN_VAGRANT_PLUGINS" == "1" ];
