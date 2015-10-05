@@ -281,7 +281,7 @@ function vov_init {
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
     
 	# user input
-	yes_no_question "Do you want to create symlink to this vov script? (strongly recommended) [Y/n]" 1 IN_INSTALL_LINK
+	yes_no_question "Create symlink to this vov script? (strongly recommended) [Y/n]" 1 IN_INSTALL_LINK
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 
 	if [ "$IS_32BIT_HOST" == "1" ]; then
@@ -381,7 +381,7 @@ function vov_install_link {
 	run_sudo
 
 	# Confirmed that this works on linux and Cygwin 
-	VOV_LINK="/usr/local/bin/vov"
+	local VOV_LINK="/usr/local/bin/vov"
 	
 	echo_w "Generating symlink to vov in $VOV_LINK..."
 
@@ -397,6 +397,65 @@ function vov_install_link {
 	
 	maybe_sudo ln -s "$VOV_PATH/vov" "$VOV_LINK"
 	echo_w "Done."
+}
+
+
+# ******************************************************************************
+#		vov conf
+# ******************************************************************************
+
+
+# Use this to set the new config value, needs 3 parameters: key, value, config file path 
+# http://stackoverflow.com/questions/2464760/modify-config-file-using-bash-script
+function set_config {
+    #sed -i "s/^\($1\s*=\s*\).*\$/\1$2/" $3
+    local KEY="$1"
+    local DELIMITER="="
+    local FILE="$3"
+    local NEWVALUE="$2"
+
+    #cat "$FILE" | grep "^${KEY}${DELIMITER}" | cut -f2- -d"$DELIMITER"
+    mv "$FILE" "$FILE.bak"
+	cat "$FILE.bak" | grep -v "^${KEY}${DELIMITER}" > "$FILE"
+	echo "${KEY}${DELIMITER}${NEWVALUE}" >> "$FILE"
+
+}
+
+
+function set_config_flag {
+	local key="$1"
+	local value="$2"
+	local config_file="$3"
+	if [[ $value == 1 || $value == 0 ]]; then
+		set_config "$key" "$value" "$config_file"
+		echo_w "Setting applied."
+	else
+		echo_w "Invalid value. Only 0 or 1 is allowed."
+	fi
+}
+
+
+function vov_conf {
+	
+	local PROVISIONING_CONFIG_FILE="$VOV_PATH/provision/config"
+	local SETTING_NAME="$1"
+	shift
+
+	case $SETTING_NAME in
+
+		skip-trunk-site-provisioning)
+			set_config_flag "skip-trunk-site-provisioning" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+
+		skip-develop-site-provisioning)
+			set_config_flag "skip-develop-site-provisioning" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+
+		*)
+			echo_w "Unknown setting name '$SETTING_NAME'. Please view VOV project wiki for help."
+			;;
+	esac
+
 }
 
 
@@ -802,6 +861,14 @@ case "$IN_ACTION" in
 	
     init)
 		vov_init
+		;;
+
+
+	# additional configuration
+	#
+	#
+	conf)
+		vov_conf "$@"
 		;;
 
 	# vagrant commands: up, suspend, halt, destroy, provision, ssh

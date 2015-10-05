@@ -18,6 +18,10 @@
 /provision/provision-pre.sh
 /provision/provision-post.sh
 
+# Ignore custom provisioning shell script configuration
+/provision/config
+/provision/config.bak
+
 # Ignore custom trigger scripts in config/homebin.
 /config/homebin/vagrant_halt_custom
 /config/homebin/vagrant_suspend_custom
