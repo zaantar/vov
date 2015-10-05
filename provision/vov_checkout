@@ -122,14 +122,28 @@ function handle_git_repository {
 	RES_DESTINATION="$3"
 
 	RES_CREDENTIALS=`jqcr $I credentials`
-	CREDENTIALS_FILE=`get_credentials_file "$RES_CREDENTIALS"`
-	GIT_USER=`get_username "$CREDENTIALS_FILE"`
-	GIT_PASSWORD=`get_password "$CREDENTIALS_FILE"`
-
-	# todo support SSH in the future
-	GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
 	
-	echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
+	local use_credentials=0;
+	if [ -n "$RES_AFTERWARDS" ]; then
+		if [ "$RES_AFTERWARDS" != "null" ]; then
+			use_credentials=1
+		fi
+	fi
+
+	if [[ $use_credentials == 1 ]]; then
+		CREDENTIALS_FILE=`get_credentials_file "$RES_CREDENTIALS"`
+		GIT_USER=`get_username "$CREDENTIALS_FILE"`
+		GIT_PASSWORD=`get_password "$CREDENTIALS_FILE"`
+
+		# todo support SSH in the future
+		GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
+		
+		echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
+	else
+		GIT_SRC="https://$RES_SOURCE"
+		echo "Performing GIT clone (without login) from $RES_SOURCE to $RES_DESTINATION..."
+	fi
+
 	sudo -u vagrant -i -- git clone "$GIT_SRC" "$RES_DESTINATION" 
 	
 	cd "$RES_DESTINATION"

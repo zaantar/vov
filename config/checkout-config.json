@@ -68,6 +68,13 @@
 			"type" : "zip",
 			"asset_type" : "plugin",
 			"source" : "hello-security.zip"
+		},
+		{
+			"name" : "WordPress-Plugin-Git-Branches-Info",
+			"type" : "git",
+			"source" : "github.com/kkarpieszuk/WordPress-Plugin-Git-Branches-Info.git",
+			"destination" : "wordpress-plugin-git-branches-info",
+			"afterwards" : "su -c 'wp plugin activate wordpress-plugin-git-branches-info' vagrant"
 		}
 	]
 }
