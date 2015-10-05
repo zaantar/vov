@@ -599,6 +599,21 @@ function vov_remove_site {
 }
 
 
+function vov_clear_site {
+	IN_SITE_NAME=$1
+	shift
+
+	run_sudo
+
+	echo_w "Clearing site $IN_SITE_NAME, please be patient..."
+	vov destroy
+	echo_w "Deleting database backup for $IN_SITE_NAME"
+	rm "database/backups/$IN_SITE_NAME.sql"
+	echo_w "Starting Vagrant again"
+	vov up
+}
+
+
 # ******************************************************************************
 #		Helper functions for main
 # ******************************************************************************
@@ -875,13 +890,19 @@ case "$IN_ACTION" in
 
 				# rest of the arguments will be passed to vov_create_site
 				vov_create_site "$IN_SITE_NAME" "$@"
-				
 				;;
 
 			# remove a site
 			remove)
 				vov_remove_site "$IN_SITE_NAME" "$@" 
 				;;
+
+			# clear site's database
+			clear)
+				vov_clear_site "$IN_SITE_NAME" "$@"
+				;;
+
+
 			*)
 				echo_w "Unknown site action. Specify 'create' or 'remove'."
 				;;
