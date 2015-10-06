@@ -133,10 +133,10 @@ done
 # Read custom provisioning configuration
 #
 #
-local provision_config_file="/vagrant/provision/config"
+provision_config_file="/vagrant/provision/config"
 
 typeset -A provision_config # init array
-local provision_config=( # set default values in config array
+provision_config=( # set default values in config array
     [skip-trunk-site-provisioning]=0
     [skip-develop-site-provisioning]=0
 )
@@ -145,7 +145,7 @@ while read line
 do
     if echo $line | grep -F = &>/dev/null
     then
-        local varname=$(echo "$line" | cut -d '=' -f 1)
+        varname=$(echo "$line" | cut -d '=' -f 1)
         provision_config[$varname]=$(echo "$line" | cut -d '=' -f 2-)
     fi
 done < "$provision_config_file"
