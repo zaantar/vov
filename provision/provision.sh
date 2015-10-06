@@ -433,6 +433,7 @@ sed -i '/AcceptEnv/c\#AcceptEnv' /etc/ssh/sshd_config
 echo -e "\nConfiguring git..."
 # http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
 git config --global core.autocrlf input
+git config --global push.default simple
 
 # RESTART SERVICES
 #
