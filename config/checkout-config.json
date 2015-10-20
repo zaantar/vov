@@ -3,63 +3,55 @@
 		{
 			"name" : "Types",
 			"type" : "git",
-			"source" : "git.onthegosystems.com/toolset/types.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/types.git",
 			"destination" : "wp-content/plugins/types",
 			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate types' vagrant"
 		},
 		{
 			"name" : "Views",
 			"type" : "git", 
-			"source" : "git.onthegosystems.com/toolset/views.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/views.git",
 			"destination" : "wp-content/plugins/wp-views",
 			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate wp-views' vagrant"
 		},
 		{
 			"name" : "CRED",
 			"type" : "git",
-			"source" : "git.onthegosystems.com/toolset/cred.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/cred.git",
 			"destination" : "wp-content/plugins/cred-frontend-editor",
 			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate cred-frontend-editor' vagrant"
 		},
 		{
 			"name" : "Layouts",
 			"type" : "git",
-			"source" : "git.onthegosystems.com/toolset/layouts.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/layouts.git",
 			"destination" : "wp-content/plugins/layouts",
 			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate layouts' vagrant"
 		},
 		{
 			"name" : "Access",
 			"type" : "git",
-			"source" : "git.onthegosystems.com/toolset/access.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/access.git",
 			"destination" : "wp-content/plugins/types-access",
 			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate types-access' vagrant"
 		},
 		{
 			"name" : "Module Manager",
 			"type" : "git",
-			"source" :	"git.onthegosystems.com/toolset/module-manager.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" :	"ssh://git@git.onthegosystems.com:10022/toolset/module-manager.git",
 			"destination" : "wp-content/plugins/toolset-module-manager",
 			"afterwards" : "su -c 'wp plugin activate toolset-module-manager' vagrant"
 		},
 		{
 			"name" : "Toolset Starter",
 			"type" : "git",
-			"source" :	"git.onthegosystems.com/reference-sites/toolset-starter.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" :	"ssh://git@git.onthegosystems.com:10022/reference-sites/toolset-starter.git",
 			"destination" : "wp-content/themes/toolset-starter"
 		},
 		{
 			"name" : "SitePress Multilingual CMS",
 			"type" : "git",
-			"source" : "git.onthegosystems.com/wpml/sitepress-multilingual-cms.git",
-			"credentials" : "git_onthegosystems_com",
+			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/sitepress-multilingual-cms.git",
 			"destination" : "wp-content/plugins/sitepress-multilingual-cms",
 			"afterwards" : "sudo -u vagrant -- wp plugin activate sitepress-multilingual-cms"
 		},
@@ -72,7 +64,7 @@
 		{
 			"name" : "WordPress-Plugin-Git-Branches-Info",
 			"type" : "git",
-			"source" : "github.com/kkarpieszuk/WordPress-Plugin-Git-Branches-Info.git",
+			"source" : "https://github.com/kkarpieszuk/WordPress-Plugin-Git-Branches-Info.git",
 			"destination" : "wp-content/plugins/wordpress-plugin-git-branches-info",
 			"afterwards" : "su -c 'wp plugin activate wordpress-plugin-git-branches-info' vagrant"
 		}
