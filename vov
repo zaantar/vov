@@ -664,17 +664,19 @@ function vov_remove_site {
 
 
 function vov_clear_site {
-	IN_SITE_NAME=$1
+	local site=$1
 	shift
 
 	run_sudo
 
 	echo_w "Clearing site $IN_SITE_NAME, please be patient..."
-	vov destroy
-	echo_w "Deleting database backup for $IN_SITE_NAME"
-	rm "database/backups/$IN_SITE_NAME.sql"
-	echo_w "Starting Vagrant again"
-	vov up
+	
+	local cmd="cd \"/srv/www/$site\""
+	cmd="$cmd; wp db reset --yes"
+	cmd="$cmd; wp core install --title=\"$site\" --url=\"http://$site.wordpress.dev\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
+	cmd="$cmd; wp plugin activate --all;"
+	
+	./vov -q run "$cmd"
 }
 
 
