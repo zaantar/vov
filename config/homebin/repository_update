@@ -21,6 +21,15 @@
 # --verbose
 #         Turn on verbose output
 #
+# --git-branch <branch-name>
+#         In each git repository where git pull doesn't fail, an attempt to checkout given branch will happen.
+#
+# --no-pull
+#         Skip the actual git pull command.
+#
+# --no-composer
+#         Skip running composer update.
+#
 # --
 #         Every argument after this will be considered a path.
 
@@ -98,22 +107,38 @@ function recursive_update {
 		# Look for a git repository
 		elif [[ -d $target/.git ]]; then
 			echo_y "Git repository found at $target"
-			echo_g "Pulling..."
 			cd "$target"
 			
-			git --work-tree "$target" --git-dir "$target/.git" pull
-			local git_ret="$?"
-			echo "Git returned $git_ret."
+			if [[ $RUN_PULL == 1 ]]; then
+				echo_g "Pulling..."				
+				git --work-tree "$target" --git-dir "$target/.git" pull
+				local git_ret="$?"
+				echo "Git returned $git_ret."
+			else
+				echo_g "Skipping pull..."
+				local git_ret=0
+			fi
 			
-			composer update --no-autoloader
-			local composer_ret="$?"
-			echo "Composer returned $composer_ret"
-			
-			cd -
 			if [[ $git_ret != 0 ]]; then 
 				echo_w "Update failed. Trying to update subdirectories instead."
 				update_subdirs "$target" 
+			else
+				# git pull succeeded
+				
+				if [ ! -z "$GIT_CHECKOUT_BRANCH" ]; then
+					echo_w "Attempting to checkout branch '$GIT_CHECKOUT_BRANCH'..."
+					git checkout "$GIT_CHECKOUT_BRANCH"
+				fi
+				
+				if [[ $RUN_COMPOSER == 1 ]]; then
+					composer update --no-autoloader
+					local composer_ret="$?"
+					echo "Composer returned $composer_ret"
+				fi
+				
 			fi
+			
+			cd -
 		# If the target file doesn't contain a .svn file
 		else
 			update_subdirs "$target" 
@@ -139,6 +164,9 @@ REPOSITORIES_TO_IGNORE=()
 DIRS=()
 ONLY_SUBDIRS=0
 VERBOSE_MODE=0
+GIT_CHECKOUT_BRANCH=""
+RUN_PULL=1
+RUN_COMPOSER=1
 
 # Read arguments and parse them as options. Everything else will be used as root directories for the recursive updates.
 # If there are no arguments, use current directory.
@@ -148,6 +176,7 @@ else
 	while [ ! -z "$1" ]; do
 		arg="$1"
 		shift
+		if_verbose echo_g "Parsing arg $arg..."
 		case "$arg" in
 			--ignore-repository)
 				REPOSITORIES_TO_IGNORE=("${REPOSITORIES_TO_IGNORE[@]}" "$1")
@@ -158,6 +187,16 @@ else
 				;;
 			--verbose)
 				VERBOSE_MODE=1
+				;;
+			--git-branch)
+				GIT_CHECKOUT_BRANCH="$1"
+				shift
+				;;
+			--no-pull)
+				RUN_PULL=0
+				;;
+			--no-composer)
+				RUN_COMPOSER=0
 				;;
 			--)
 				DIRS=("${DIRS[@]}" $@)
@@ -170,6 +209,7 @@ else
 	done
 fi
 
+if_verbose echo_g "GIT_CHECKOUT_BRANCH='$GIT_CHECKOUT_BRANCH'"
 if_verbose echo_g "REPOSITORIES_TO_IGNORE: ${REPOSITORIES_TO_IGNORE[@]}"
 if_verbose echo_g "DIRS: ${DIRS[@]}"
 

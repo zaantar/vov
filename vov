@@ -479,6 +479,10 @@ function vov_conf {
 # --verbose
 #         Turn on verbose mode for the underlying repository_update script.
 #
+# --git-branch <branch-name>
+#         In each git repository where git pull doesn't fail, an attempt to checkout 
+#         given branch will happen.
+#
 function vov_repo_update {
 	
 	# read input arguments
@@ -486,6 +490,9 @@ function vov_repo_update {
 	local SITE_NAME="wordpress-default"
 	local HAS_ROOT_REPOSITORY=0
 	local IS_VERBOSE_MODE=0
+	local GIT_CHECKOUT_BRANCH=""
+	local NO_PULL=0
+	local NO_COMPOSER=0
 
 	while [ ! -z "$1" ]; do
 		local input_arg="$1"
@@ -500,6 +507,16 @@ function vov_repo_update {
 				;;
 			--verbose)
 				IS_VERBOSE_MODE=1
+				;;
+			--git-branch)
+				GIT_CHECKOUT_BRANCH="$1"
+				shift
+				;;
+			--no-pull)
+				NO_PULL=1
+				;;
+			--no-composer)
+				NO_COMPOSER=1
 				;;
 			*)
 				SITE_NAME="$input_arg"
@@ -519,6 +536,14 @@ function vov_repo_update {
 	if [[ $IS_VERBOSE_MODE == 1 ]]; then
 		UPDATE_ARGS="$UPDATE_ARGS --verbose"
 	fi
+	
+	if [[ $NO_PULL == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --no-pull"
+	fi
+	
+	if [[ $NO_COMPOSER == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --no-composer"
+	fi
 
 	# Determine path that should be updated.
 	
@@ -530,6 +555,10 @@ function vov_repo_update {
 	elif [[ $SITE_NAME == "wordpress-develop" ]]; then
 		# Fix path for wordpress-develop, we know other subdirs will not contain anything updateable
 		UPDATE_PATH="/srv/www/wordpress-develop/src"
+	fi
+	
+	if [ ! -z "$GIT_CHECKOUT_BRANCH" ]; then
+		UPDATE_ARGS="$UPDATE_ARGS --git-branch \"$GIT_CHECKOUT_BRANCH\""
 	fi
 
 	local UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH"
