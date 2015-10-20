@@ -67,6 +67,13 @@
 			"source" : "https://github.com/kkarpieszuk/WordPress-Plugin-Git-Branches-Info.git",
 			"destination" : "wp-content/plugins/wordpress-plugin-git-branches-info",
 			"afterwards" : "su -c 'wp plugin activate wordpress-plugin-git-branches-info' vagrant"
+		},
+		{
+			"name" : "VOV WP-CLI Extensions",
+			"type" : "git",
+			"source" : "ssh://git@git.onthegosystems.com:10022/jan/vov-wp-cli-extensions.git",
+			"destination" : "wp-content/plugins/vov-wp-cli-extensions",
+			"afterwards" : "su -c 'wp plugin activate vov-wp-cli-extensions' vagrant"
 		}
 	]
 }
