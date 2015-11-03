@@ -483,6 +483,12 @@ function vov_conf {
 #         In each git repository where git pull doesn't fail, an attempt to checkout 
 #         given branch will happen.
 #
+# --no-pull
+#         Skip the actual git pull command.
+#
+# --no-composer
+#         Skip running composer update.
+#
 function vov_repo_update {
 	
 	# read input arguments
@@ -700,9 +706,17 @@ function vov_clear_site {
 
 	echo_w "Clearing site $IN_SITE_NAME, please be patient..."
 	
-	local cmd="cd \"/srv/www/$site\""
+	local path="/srv/www/$site"
+	local url="http://$site.wordpress.dev"
+	
+	if [ "$site" == "default" ] || [ "$site" == "" ]; then
+		local path="/srv/www/wordpress-default"
+		local url="http://local.wordpress.dev"
+	fi
+	
+	local cmd="cd \"$path\""
 	cmd="$cmd; wp db reset --yes"
-	cmd="$cmd; wp core install --title=\"$site\" --url=\"http://$site.wordpress.dev\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
+	cmd="$cmd; wp core install --title=\"$site\" --url=\"$url\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
 	cmd="$cmd; wp plugin activate --all;"
 	
 	./vov -q run "$cmd"
@@ -1038,6 +1052,15 @@ case "$IN_ACTION" in
 	
 	key)
 		vov_key
+		;;
+		
+	# Some other shortcut commands
+	#
+	#
+	
+	morning)
+	    echo_y "Good morning!"
+		./vov -q up && ./vov -q repo update && ./vov -q ssh
 		;;
 
 	# Unrecognized command
