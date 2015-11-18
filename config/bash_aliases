@@ -63,12 +63,12 @@ alias chownr='chown -R'
 
 alias cdwp='cd /srv/www/wordpress-default'
 alias cdp='cd wp-content/plugins'
-alias cdt='cd wp-content/themes'
+alias cdth='cd wp-content/themes'
 alias cdwpp='cdwp && cdp'
 
 alias cdv='cdwpp && cd wp-views'
 alias cdl='cdwpp && cd layouts'
-
+alias cdtcl='cdv && cd embedded/toolset/toolset-common'
 ###
 ### ack
 ###
@@ -91,7 +91,7 @@ alias svnlog='svn log | head -n 50'
 alias svndiff='svn diff | colourdiff'
 
 # composer update
-alias cu='composer update --no-autoloader'
+alias cu='xdebug_off; composer update --no-autoloader'
 
 
 ###
