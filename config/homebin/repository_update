@@ -113,9 +113,13 @@ function recursive_update {
 				echo_g "Pulling..."				
 				git --work-tree "$target" --git-dir "$target/.git" pull
 				local git_ret="$?"
-				echo "Git returned $git_ret."
+				if [[ $git_ret == 0 ]]; then
+					echo_w "Git returned zero (ok)."
+				else
+					echo_w "Git returned $git_ret."
+				fi
 			else
-				echo_g "Skipping pull..."
+				echo_g "Skipping pull."
 				local git_ret=0
 			fi
 			
@@ -131,9 +135,19 @@ function recursive_update {
 				fi
 				
 				if [[ $RUN_COMPOSER == 1 ]]; then
-					composer update --no-autoloader
-					local composer_ret="$?"
-					echo "Composer returned $composer_ret"
+					if [ -f "composer.json" ]; then
+						composer update --no-autoloader
+						local composer_ret="$?"
+						if [[ $composer_ret == 0 ]]; then
+							echo_w "Composer returned zero (ok)."
+						else
+							echo_w "Composer returned $composer_ret."
+						fi
+					else
+						echo_g "No composer project, skipping."
+					fi
+				else
+					echo_g "Skipping composer update."
 				fi
 				
 			fi
