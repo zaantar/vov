@@ -18,10 +18,21 @@
 /provision/provision-pre.sh
 /provision/provision-post.sh
 
+# Ignore custom provisioning shell script configuration
+/provision/config
+/provision/config.bak
+
+# Temporary directory for duplicator packages
+/provision/duplicator_packages/tmp
+
 # Ignore custom trigger scripts in config/homebin.
 /config/homebin/vagrant_halt_custom
 /config/homebin/vagrant_suspend_custom
 /config/homebin/vagrant_destroy_custom
+
+# Ignore personal SSL certificate
+/config/ssh/icl_rsa
+/config/ssh/icl_rsa.pub
 
 # No need to share individual site configs with each other
 /config/nginx-config/sites/*.conf
@@ -42,7 +53,10 @@
 /config/checkout-zipfiles/*
 
 # Log files should be ignored.
-/log/*.log
+/log
+
+# Generated documentation is of no interest
+/docs
 
 # No need to share our individual sites with each other
 /www/*

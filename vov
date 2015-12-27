@@ -17,6 +17,11 @@ COLOUR_RED='\033[91m'
 COLOUR_LIGHT_GRAY='\033[0;37m'
 
 
+# ******************************************************************************
+#		Universal helper functions
+# ******************************************************************************
+
+
 function echo_w {
     echo -e "$COLOUR_WHITE$1$COLOUR_RESTORE"
 }
@@ -28,6 +33,65 @@ function echo_y {
 function echo_g {
 	echo -e "$COLOUR_LIGHT_GRAY$1$COLOUR_RESTORE"
 }
+
+
+function run_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin - we will not print anything
+		return
+	else
+		sudo echo "Superuser privileges granted."
+	fi
+}
+
+
+function maybe_sudo {
+	if [ "$IS_CYGWIN" == "1" ]; then
+		# sudo is not needed in cygwin
+		eval "$@"
+	else
+		sudo "$@"
+	fi
+}
+
+
+function run_vv {
+	echo_w "Running vv (Variable VVV)..."
+
+	# give them some credit
+	if_not_quiet externals/vv/vv --about
+
+	# run the actual command
+	externals/vv/vv "$@"
+	
+	echo
+}
+
+
+function array_contains() {
+    local n=$#
+    local value=${!n}
+    for ((i=1;i < $#;i++)) {
+        if [ "${!i}" == "${value}" ]; then
+            echo "y"
+            return 0
+        fi
+    }
+    echo "n"
+    return 1
+}
+
+
+# contains aList anItem
+function contains() {
+    [[ $1 =~ $2 ]] && return 0 || return 1
+}
+
+
+
+# ******************************************************************************
+#		User input
+# ******************************************************************************
 
 
 # Ask user a yes/no question and insist on an answer.
@@ -119,8 +183,60 @@ function prompt_for_credentials {
 		fi
 	done
 
-	eval $RET_PASSWORD="\"$PASSWORD_FIRST\""
+	eval $RET_PASSWORD="\"$PASSWORD_FIRST\"" 
 }
+
+
+# ******************************************************************************
+#		vov key
+# ******************************************************************************
+
+
+function vov_key {
+	
+	local KEY_FILE="$VOV_PATH/config/ssh/icl_rsa";
+	
+	# check if keys already exist
+	if [ -f "$KEY_FILE" ]; then
+		yes_no_question "The key file already exists. Are you sure you want to generate a new key? [y/N]" 0 CERT_IS_OVERWRITE
+		if [ $CERT_IS_OVERWRITE == 0 ]; then
+			return
+		fi
+	fi
+	
+	
+	echo_w "Generating SSH keys..."
+	
+	local EMAILS_MATCH=0
+	
+	until [ $EMAILS_MATCH == 1 ]; do
+		read -p "Please enter your e-mail address at icanlocalize.com: " CERT_IN_NAME;
+		read -p "Please enter your e-mail address again: " CERT_IN_NAME_2;
+	
+		echo
+		
+		if [ "$CERT_IN_NAME" == "$CERT_IN_NAME_2" ]; then
+			EMAILS_MATCH=1
+		else
+			echo "E-mail addresses don't match. Please repeat."
+		fi
+	done
+	
+	ssh-keygen -t rsa -b 4096 -C "$CERT_IN_NAME" -f "$KEY_FILE"
+	
+	echo
+	echo_w "Keys generated to $KEY_FILE."
+	echo_y "Now you need to add the SSH key to Gitlab. Please go to "
+	echo_y "https://git.onthegosystems.com/profile/keys and add this key:"
+	echo
+	cat "$KEY_FILE.pub"
+	echo
+}
+
+
+# ******************************************************************************
+#		vov init
+# ******************************************************************************
 
 
 function fix_permissions {
@@ -136,25 +252,6 @@ function fix_permissions {
 	done
 }
 
-
-function maybe_sudo {
-	if [ "$IS_CYGWIN" == "1" ]; then
-		# sudo is not needed in cygwin
-		eval "$@"
-	else
-		sudo "$@"
-	fi
-}
-
-
-function run_sudo {
-	if [ "$IS_CYGWIN" == "1" ]; then
-		# sudo is not needed in cygwin - we will not print anything
-		return
-	else
-		sudo echo "Superuser privileges granted."
-	fi
-}
 
 
 # urlencode for git credentials
@@ -176,44 +273,9 @@ function rawurlencode {
 }
 
 
-is_update_available () {
-	local THIS_VERSION=$1
-	local REPO_VERSION=$2
-	LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
-	if [ $LATEST_VERSION == $THIS_VERSION ]; then
-		echo 0
-	else
-		echo 1
-	fi
-}
-
-
-function check_updates {
-	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-
-	echo_g "You are on the $CURRENT_BRANCH branch."
-	
-	local LAST_TAG=`git describe --abbrev=0 --tags`	
-	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
-	if [ $UPDATE_EXISTS == 1 ]; then
-		echo_y "There is a new version of VOV available: $LAST_TAG"
-	fi
-}
-
-
-function run_vv {
-	echo_w "Running vv (Variable VVV)..."
-	externals/vv/vv --about
-	externals/vv/vv "$@"
-	echo
-}
-
-
 ###
 ### vov init
 ###
-
-# todo install vagrant plugins (add option to disable this)
 
 function vov_init {
 
@@ -222,10 +284,10 @@ function vov_init {
 	CONFIG_32BIT_BOX='config.vm.box = "ubuntu/trusty32"\n'
 	CONFIG_LOWMEM_BOX='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--memory", 384]\nend\n'
 	CONFIG_TWO_CPUS='config.vm.provider :virtualbox do |v|\n    v.customize ["modifyvm", :id, "--cpus", 2]\nend\n'
-	SVN_CREDENTIALS_FILE="config/checkout-credentials/onthegosystems_com_misc_svn"
 	GITLAB_CREDENTIALS_FILE="config/checkout-credentials/git_onthegosystems_com"
     
 	# user input
+	yes_no_question "Create symlink to this vov script? (strongly recommended) [Y/n]" 1 IN_INSTALL_LINK
 	yes_no_question "Do you want to use a 32bit box instead of 64bit? [y/N]" 0 IN_32BIT_BOX
 
 	if [ "$IS_32BIT_HOST" == "1" ]; then
@@ -238,9 +300,9 @@ function vov_init {
 	yes_no_question "Install Vagrant plugins recommended by VVV? [Y/n]" 1 IN_VAGRANT_PLUGINS
 	yes_no_question "Should the box have two CPU cores instead of one? [y/N]" 0 IN_TWO_CPUS
 
-	prompt_for_credentials "Please enter SVN credentials for onthegosystems.com/misc_svn:" "Press only Enter to skip this step." IN_IS_SVN IN_SVN_USERNAME IN_SVN_PASSWORD
-
 	prompt_for_credentials "Please enter GIT credentials for git.onthegosystems.com:" "Press only Enter to skip this step." IN_IS_GIT IN_GITLAB_USERNAME IN_GITLAB_PASSWORD
+	
+	yes_no_question "Generate a new SSL key for GitLab? (you can use 'vov key' command later) [y/N]" 0 IN_GENERATE_SSL_KEY
 		
 	yes_no_question "Ready to apply the customisations. Continue? [Y/n]" 1 IN_CONTINUE
 	echo
@@ -250,7 +312,11 @@ function vov_init {
 	then
 		exit
 	fi
-	
+
+	# run vov install-link
+	if [ "$IN_INSTALL_LINK" = "1" ]; then
+		vov_install_link
+	fi
 	
 	# install vagrant plugins
 	if [ "$IN_VAGRANT_PLUGINS" == "1" ];
@@ -262,13 +328,6 @@ function vov_init {
 
 	fi
 	
-	
-	# write SVN credentials into the appropriate file
-	if [ $IN_IS_SVN == 1 ]; then
-		echo_w "Saving SVN credentials for onthegosystems.com/misc_svn..."
-		echo -e "$IN_SVN_USERNAME\n$IN_SVN_PASSWORD" > $SVN_CREDENTIALS_FILE
-	fi
-
 	# write Gitlab credentials
 	if [ $IN_IS_GIT == 1 ]; then
 		echo_w "Saving GIT credentials for git.onthegosystems.com..."
@@ -301,6 +360,12 @@ function vov_init {
 	echo_w "Fixing permissions for executable files..."
 	fix_permissions
 
+	if [ "$IN_GENERATE_SSL_KEY" == "1" ];
+	then
+		echo_w "Running vov key..."
+		vov key
+	fi
+
 	echo_w "Finished."
 	echo
 	echo_w "Now you are ready to run VOV with command:$COLOUR_YELLOW ./vov up"
@@ -308,6 +373,244 @@ function vov_init {
 }
 
 
+# ******************************************************************************
+#		vov install-link
+# ******************************************************************************
+
+
+###
+### vov install-link
+###
+
+function vov_install_link {
+
+	run_sudo
+
+	# Confirmed that this works on linux and Cygwin 
+	local VOV_LINK="/usr/local/bin/vov"
+	
+	echo_w "Generating symlink to vov in $VOV_LINK..."
+
+	if [ -e "$VOV_LINK" ]; then
+		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
+		if [ "$IN_CONTINUE" == "1" ]; then
+			maybe_sudo rm "$VOV_LINK"
+		else
+			echo_w "Aborted."
+			return
+		fi
+	fi
+	
+	maybe_sudo ln -s "$VOV_PATH/vov" "$VOV_LINK"
+	echo_w "Done."
+}
+
+
+# ******************************************************************************
+#		vov conf
+# ******************************************************************************
+
+
+# Use this to set the new config value, needs 3 parameters: key, value, config file path 
+# http://stackoverflow.com/questions/2464760/modify-config-file-using-bash-script
+function set_config {
+    #sed -i "s/^\($1\s*=\s*\).*\$/\1$2/" $3
+    local KEY="$1"
+    local DELIMITER="="
+    local FILE="$3"
+    local NEWVALUE="$2"
+
+    #cat "$FILE" | grep "^${KEY}${DELIMITER}" | cut -f2- -d"$DELIMITER"
+    mv "$FILE" "$FILE.bak"
+	cat "$FILE.bak" | grep -v "^${KEY}${DELIMITER}" > "$FILE"
+	echo "${KEY}${DELIMITER}${NEWVALUE}" >> "$FILE"
+
+}
+
+
+function set_config_flag {
+	local key="$1"
+	local value="$2"
+	local config_file="$3"
+	if [[ $value == 1 || $value == 0 ]]; then
+		set_config "$key" "$value" "$config_file"
+		echo_w "Setting applied."
+	else
+		echo_w "Invalid value. Only 0 or 1 is allowed."
+	fi
+}
+
+
+function vov_conf {
+	
+	local PROVISIONING_CONFIG_FILE="$VOV_PATH/provision/config"
+	local SETTING_NAME="$1"
+	shift
+
+	case $SETTING_NAME in
+
+		skip-trunk-site-provisioning)
+			set_config_flag "skip-trunk-site-provisioning" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+
+		skip-develop-site-provisioning)
+			set_config_flag "skip-develop-site-provisioning" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+
+		*)
+			echo_w "Unknown setting name '$SETTING_NAME'. Please view VOV project wiki for help."
+			;;
+	esac
+
+}
+
+
+# ******************************************************************************
+#		vov repo
+# ******************************************************************************
+
+# Handler for the vov repo update command
+#
+# Usage: vov repo update [OPTIONS] [SITE_NAME]
+#
+# Options:
+#
+# --all
+#         Process the whole /srv/www directory.
+#
+# --has-root-repository
+#         Indicate that a single site has a repository in it's root. This repository
+#         will be updated as well but it's subdirectories will be processed, too.
+#
+# --verbose
+#         Turn on verbose mode for the underlying repository_update script.
+#
+# --git-branch <branch-name>
+#         In each git repository where git pull doesn't fail, an attempt to checkout 
+#         given branch will happen.
+#
+# --no-pull
+#         Skip the actual git pull command.
+#
+# --no-composer
+#         Skip running composer update.
+#
+function vov_repo_update {
+	
+	# read input arguments
+	local IS_ALL_SITES=0
+	local SITE_NAME="wordpress-default"
+	local HAS_ROOT_REPOSITORY=0
+	local IS_VERBOSE_MODE=0
+	local GIT_CHECKOUT_BRANCH=""
+	local NO_PULL=0
+	local NO_COMPOSER=0
+
+	while [ ! -z "$1" ]; do
+		local input_arg="$1"
+		shift
+
+		case $input_arg in
+			--has-root-repository)
+				HAS_ROOT_REPOSITORY=1
+				;;
+			--all)
+				IS_ALL_SITES=1
+				;;
+			--verbose)
+				IS_VERBOSE_MODE=1
+				;;
+			--git-branch)
+				GIT_CHECKOUT_BRANCH="$1"
+				shift
+				;;
+			--no-pull)
+				NO_PULL=1
+				;;
+			--no-composer)
+				NO_COMPOSER=1
+				;;
+			*)
+				SITE_NAME="$input_arg"
+				;;
+		esac
+	done
+
+	# we know that some predefined sites have a repository in their root
+	local SITES_WITH_ROOT_REPOSITORY=("wordpress-develop" "wordpress-trunk")
+	if [ $(array_contains "${SITES_WITH_ROOT_REPOSITORY[@]}" "$SITE_NAME") == "y" ]; then
+		HAS_ROOT_REPOSITORY=1
+	fi
+
+	# build additional argument for the update command
+	local UPDATE_ARGS=""
+
+	if [[ $IS_VERBOSE_MODE == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --verbose"
+	fi
+	
+	if [[ $NO_PULL == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --no-pull"
+	fi
+	
+	if [[ $NO_COMPOSER == 1 ]]; then
+		UPDATE_ARGS="$UPDATE_ARGS --no-composer"
+	fi
+
+	# Determine path that should be updated.
+	
+	# If no site name was given, it will default to "wordpress-default".
+	local UPDATE_PATH="/srv/www/$SITE_NAME"
+	if [[ $IS_ALL_SITES == 1 ]]; then
+		# We will update everything in the /srv/www directory
+		UPDATE_PATH="/srv/www"
+	elif [[ $SITE_NAME == "wordpress-develop" ]]; then
+		# Fix path for wordpress-develop, we know other subdirs will not contain anything updateable
+		UPDATE_PATH="/srv/www/wordpress-develop/src"
+	fi
+	
+	if [ ! -z "$GIT_CHECKOUT_BRANCH" ]; then
+		UPDATE_ARGS="$UPDATE_ARGS --git-branch \"$GIT_CHECKOUT_BRANCH\""
+	fi
+
+	local UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH"
+
+	# If there's a repository in the root of the update path, we will run the update command first normally
+	# and second with --only-subdirs. That way everything gets updated.
+	if [[ $HAS_ROOT_REPOSITORY == 1 ]]; then
+		UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH; repository_update --only-subdirs $UPDATE_ARGS $UPDATE_PATH"
+	fi
+	
+	UPDATE_COMMAND="xdebug_off; $UPDATE_COMMAND"
+	
+	./vov -q run "$UPDATE_COMMAND"
+}
+
+
+# Handler for the vov repo command
+#
+#
+function vov_repo {
+
+	local ACTION="$1"
+	shift
+
+	case $ACTION in
+		update)
+			vov_repo_update "$@"
+			;;
+		*)
+			echo_w "Unknown repo action."
+			;;
+	esac
+
+}
+
+
+
+# ******************************************************************************
+#		vov site
+# ******************************************************************************
 
 
 ###
@@ -355,6 +658,9 @@ function vov_create_site {
 				IS_CLEAR_SITE=1
 				shift
 				;;
+			*)
+				shift
+				;;
 		esac
 	done
 
@@ -382,6 +688,7 @@ function vov_create_site {
 	echo_w "vv finished."
 }
 
+
 ###
 ### vov site remove
 ###
@@ -399,101 +706,223 @@ function vov_remove_site {
 }
 
 
-###
-### vov install-link
-###
-
-function vov_install_link {
+function vov_clear_site {
+	local site=$1
+	shift
 
 	run_sudo
 
-	# Confirmed that this works on linux and Cygwin 
-	VOV_LINK="/usr/local/bin/vov"
+	echo_w "Clearing site $IN_SITE_NAME, please be patient..."
 	
-	echo_w "Generating symlink to vov in $VOV_LINK..."
+	local path="/srv/www/$site"
+	local url="http://$site.wordpress.dev"
+	
+	if [ "$site" == "default" ] || [ "$site" == "" ]; then
+		local path="/srv/www/wordpress-default"
+		local url="http://local.wordpress.dev"
+	fi
+	
+	local cmd="cd \"$path\""
+	cmd="$cmd; wp db reset --yes"
+	cmd="$cmd; wp core install --title=\"$site\" --url=\"$url\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
+	cmd="$cmd; wp plugin activate --all;"
+	
+	./vov -q run "$cmd"
+}
 
-	if [ -e "$VOV_LINK" ]; then
-		yes_no_question "The file $VOV_LINK already exists. Overwrite? [y/N]" 0 IN_CONTINUE
-		if [ "$IN_CONTINUE" == "1" ]; then
-			maybe_sudo rm "$VOV_LINK"
-		else
-			echo_w "Aborted."
+
+function vov_site_duplicate {
+
+	if_not_quiet echo_g "Initializing..."
+	
+	run_sudo
+	
+	local site="$1"
+	shift
+	
+	local mode="$1"
+	shift
+	if ! contains "url dir" $mode; then
+		echo_w "Invalid mode (url/dir). Aborting."
+		return
+	fi
+	
+	local installer_path=""
+	local package_path=""
+
+	while [ ! -z "$1" ]; do
+		arg="$1"
+		shift
+		
+		case "$arg" in
+			--installer)
+				installer_path="$1"
+				;;
+			--package)
+				package_path="$1"
+				;;
+		esac
+	done
+
+	if_not_quiet echo_g "Preparing temporary download destination..."
+	local download_path="./provision/duplicator_packages/tmp"
+	rm -rf "$download_path"
+	mkdir -p "$download_path" 
+	local installer_dst="$download_path/installer.php"
+	local package_dst="$download_path/package.zip"
+	
+	if_not_quiet echo_g "Getting duplicator files..."
+	if [[ $mode == "url" ]]; then
+		wget -o "$installer_dst" -- "$installer_path"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while downloading installer.php from $installer_path. Aborting."
+			return
+		fi
+		wget -o "$package_dst" -- "$package_path"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while downloading the duplicator package from $package_path. Aborting."
+			return
+		fi
+	else
+		cp -v "$installer_path" "$installer_dst"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while copying installer.php from $installer_path. Aborting."
+			return
+		fi
+		cp -v "$package_path" "$package_dst"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while copying the duplicator package from $package_path. Aborting."
 			return
 		fi
 	fi
+
+	if_not_quiet echo_g "Creating the blank site with vv..."
+	local vv_args="--defaults --name $site --domain $site.wordpress.dev --blank-with-db"
+	yes | externals/vv/vv create $vv_args
+	local site_dir="/srv/www/$site/htdocs"
 	
-	maybe_sudo ln -s -T "$VOV_PATH/vov" "$VOV_LINK"
-	echo_w "Done."
+	local cmd_mkdir="mkdir -p $site_dir"
+	local cmd_copy_installer="cp /vagrant/provision/duplicator_packages/tmp/installer.php $site_dir/installer.php"
+	local cmd_copy_package="cp /vagrant/provision/duplicator_packages/tmp/package.zip $site_dir/package.zip"	
+	local vov_command="$cmd_mkdir; cd $site_dir; wp core download; $cmd_copy_installer; $cmd_copy_package"
+	./vov -q run "$vov_command"
+	
+	echo_y "Please visit http://$site.wordpress.dev/installer.php and install the Duplicator package."
+	echo
+	echo_w "Database name: $site"
+	echo_w "Database user name: wp"
+	echo_w "Database password: wp"
 }
 
 
-###
-### vov repo
-###
+# ******************************************************************************
+#		Helper functions for main
+# ******************************************************************************
 
-function vov_repo {
 
-	local ACTION="$1"
-	shift
+is_update_available () {
+	local THIS_VERSION=$1
+	local REPO_VERSION=$2
 
-	case $ACTION in
-		update)
-
-			# read input arguments
-			local IS_ALL_SITES=0
-			local SITE_NAME="wordpress-default"
-
-			while [ ! -z "$1" ]; do
-				local input_arg="$1"
-				shift
-
-				case $input_arg in
-					--all)
-						IS_ALL_SITES=1
-						;;
-					*)
-						SITE_NAME="$input_arg"
-						;;
-				esac
-			done
-
-			if [[ $IS_ALL_SITES == 1 ]]; then
-				local UPDATE_PATH="/srv/www"
-			else
-				local UPDATE_PATH="/srv/www/$SITE_NAME"
-			fi
-
-			local UPDATE_COMMAND="repository_update $UPDATE_PATH"
-			./vov -q run "$UPDATE_COMMAND"
+	case $VOV_OS in
+		osx)
+			# http://stackoverflow.com/questions/4493205/unix-sort-of-version-numbers
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -n 1)
 			;;
-
 		*)
-			echo_w "Unknown repo action."
+			local LATEST_VERSION=$(echo -e "$THIS_VERSION\n$REPO_VERSION" | sort -V | tail -n 1)
 			;;
 	esac
-
+	
+	if [ "$LATEST_VERSION" = "$THIS_VERSION" ]; then
+		echo 0
+	else
+		echo 1
+	fi
 }
 
 
+function check_updates {
+	local CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
-###
-### main
-###
+	if_not_quiet echo_g "You are on the $CURRENT_BRANCH branch."
+	
+	local LAST_TAG=`git describe --abbrev=0 --tags`	
+	local UPDATE_EXISTS=$(is_update_available $VOV_VERSION $LAST_TAG)
+	if [ "$UPDATE_EXISTS" = 1 ]; then
+		if_not_quiet echo_y "There is a new version of VOV available: $LAST_TAG"
+	fi
+}
+
+
+# because apple is evil
+# http://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac
+function readlink_f {
+	case $VOV_OS in
+	
+		osx)
+			TARGET_FILE=$1
+
+			cd `dirname $TARGET_FILE`
+			TARGET_FILE=`basename $TARGET_FILE`
+
+			# Iterate down a (possible) chain of symlinks
+			while [ -L "$TARGET_FILE" ]
+			do
+				TARGET_FILE=`readlink $TARGET_FILE`
+				cd `dirname $TARGET_FILE`
+				TARGET_FILE=`basename $TARGET_FILE`
+			done
+
+			# Compute the canonicalized name by finding the physical path 
+			# for the directory we're in and appending the target file.
+			PHYS_DIR=`pwd -P`
+			RESULT=$PHYS_DIR/$TARGET_FILE
+			echo $RESULT			
+			;;
+			
+		*)
+			readlink -f "$1"
+			;;
+	esac
+}
+
+
+function if_not_quiet {
+	if [[ $IS_QUIET_MODE == 0 ]]; then
+		local command="$1";
+		shift
+		local args="$@"
+		$command "$args"
+	fi
+}
+
+
+# ******************************************************************************
+#		MAIN
+# ******************************************************************************
+
+
 
 if [[ $1 == "-q" ]]; then
 	# quiet mode
+	IS_QUIET_MODE=1
 	shift
 else
-	echo
-	echo_y "                                _    ______ _    __"
-	echo_y "                               | |  / / __ \ |  / /"
-	echo_y "                               | | / / / / / | / / "
-	echo_y "                               | |/ / /_/ /| |/ /  "
-	echo_y "                               |___/\____/ |___/   "
-	echo
-	echo_y "                                                    ...just VOV!"
-	echo
+	IS_QUIET_MODE=0
 fi
+
+
+if_not_quiet echo
+if_not_quiet echo_y "                                _    ______ _    __"
+if_not_quiet echo_y "                               | |  / / __ \ |  / /"
+if_not_quiet echo_y "                               | | / / / / / | / / "
+if_not_quiet echo_y "                               | |/ / /_/ /| |/ /  "
+if_not_quiet echo_y "                               |___/\____/ |___/   "
+if_not_quiet echo
+if_not_quiet echo_y "                                                    ...just VOV!"
+if_not_quiet echo
+
 
 # Probe environment
 #
@@ -503,24 +932,28 @@ fi
 IS_CYGWIN=0
 IS_LINUX=0
 IS_OSX=0
+VOV_OS="unknown"
 
 case `uname` in
 	
 	Linux)
-		echo_g "Linux, yaaay!"
+		if_not_quiet echo_g "Linux, yaaay!"
 		IS_LINUX=1
+		VOV_OS="linux"
 		;;
 	darwin|Darwin)
-		echo_g "OS X. Please help me with testing your platform."
+		if_not_quiet echo_g "OS X. Please help me with testing your platform."
 		IS_OSX=1
+		VOV_OS="osx"
 		;;
 	*)
 		# Let's try uname -o. It might not be supported, but we have nothing to lose.
 		if [ `uname -o` == "Cygwin" ]; then
-			echo_g "Cygwin detected. Welcome, Windows user!"
+			if_not_quiet echo_g "Cygwin detected. Welcome, Windows user!"
 			IS_CYGWIN=1
+			VOV_OS="cygwin"
 		else
-			echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
+			if_not_quiet echo_g "Your platform might not be fully supported (OSTYPE=$OSTYPE)."
 		fi
 		;;
 esac
@@ -531,15 +964,15 @@ MACHINE_HW_NAME=`uname -m`
 if [ "$MACHINE_HW_NAME" == "x86_64" ]; then
 	IS_32BIT_HOST=0
 else
-	echo_g "This is a 32bit machine."
+	if_not_quiet echo_g "This is a 32bit machine."
 	IS_32BIT_HOST=1
 fi
 
 # determine absolute path to this script
 # http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
 # http://unix.stackexchange.com/questions/17499/get-path-of-current-script-when-executed-through-a-symlink
-VOV_PATH="$(dirname "$(readlink -f "$0")")"
-echo_g "VOV_PATH is $VOV_PATH"
+VOV_PATH="$(dirname "$(readlink_f "$0")")"
+if_not_quiet echo_g "VOV_PATH is $VOV_PATH"
 
 # everything must happen in the VOV project path
 cd "$VOV_PATH"
@@ -554,7 +987,7 @@ check_updates
 IN_ACTION="$1"
 shift
 
-echo
+if_not_quiet echo
 
 case "$IN_ACTION" in
 
@@ -565,6 +998,14 @@ case "$IN_ACTION" in
 	
     init)
 		vov_init
+		;;
+
+
+	# additional configuration
+	#
+	#
+	conf)
+		vov_conf "$@"
 		;;
 
 	# vagrant commands: up, suspend, halt, destroy, provision, ssh
@@ -631,7 +1072,7 @@ case "$IN_ACTION" in
 	#
 
 	run)
-		run_command="'source ~/.bash_profile; $@'"
+		run_command="'source .bash_profile; source .bash_aliases; source .bashrc; $@'"
 		echo_w "Running command: $run_command"
 		vagrant ssh -- bash -ic $run_command
 		;;
@@ -658,13 +1099,25 @@ case "$IN_ACTION" in
 
 				# rest of the arguments will be passed to vov_create_site
 				vov_create_site "$IN_SITE_NAME" "$@"
-				
 				;;
 
 			# remove a site
 			remove)
 				vov_remove_site "$IN_SITE_NAME" "$@" 
 				;;
+
+			# clear site's database
+			clear)
+				vov_clear_site "$IN_SITE_NAME" "$@"
+				;;
+				
+				
+			# create new site from duplicator package
+			duplicate)
+				vov_site_duplicate "$IN_SITE_NAME" "$@"
+				;;
+
+
 			*)
 				echo_w "Unknown site action. Specify 'create' or 'remove'."
 				;;
@@ -689,6 +1142,24 @@ case "$IN_ACTION" in
 	install-link)
 		vov_install_link
 		;;
+		
+		
+	# Generate SSH keys for git.onthegosystems.com
+	#
+	#
+	
+	key)
+		vov_key
+		;;
+		
+	# Some other shortcut commands
+	#
+	#
+	
+	morning)
+	    echo_y "Good morning!"
+		./vov -q up && ./vov -q repo update && ./vov -q ssh
+		;;
 
 	# Unrecognized command
 	#
@@ -701,7 +1172,7 @@ case "$IN_ACTION" in
 esac
 
 # next time we will know if there is an upgrade available
-git fetch
+#if_not_quiet git -c core.askpass=false fetch
 
 # return from VOV_PATH
 cd - > /dev/null

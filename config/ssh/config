@@ -1,0 +1,12 @@
+Host git.onthegosystems.com
+    Hostname git.onthegosystems.com
+    ForwardAgent yes
+    PreferredAuthentications publickey,password
+    
+    # http://superuser.com/questions/421074/ssh-the-authenticity-of-host-host-cant-be-established
+    StrictHostKeyChecking no 
+    
+	# since 2015-10-09
+    Port 10022
+    
+    IdentityFile ~/.ssh/icl_rsa

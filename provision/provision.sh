@@ -110,6 +110,7 @@ apt_package_check_list=(
 	fortune
 	jq # parsing and querying JSON, used by vov_checkout
 	figlet # text banners in terminal
+	git-flow # used in toolset plugins
 )
 
 echo "Check for apt packages to install..."
@@ -128,6 +129,27 @@ for pkg in "${apt_package_check_list[@]}"; do
 		apt_package_install_list+=($pkg)
 	fi
 done
+
+# Read custom provisioning configuration
+#
+#
+provision_config_file="/vagrant/provision/config"
+
+typeset -A provision_config # init array
+provision_config=( # set default values in config array
+    [skip-trunk-site-provisioning]=0
+    [skip-develop-site-provisioning]=0
+)
+
+while read line
+do
+    if echo $line | grep -F = &>/dev/null
+    then
+        varname=$(echo "$line" | cut -d '=' -f 1)
+        provision_config[$varname]=$(echo "$line" | cut -d '=' -f 2-)
+    fi
+done < "$provision_config_file"
+
 
 # MySQL
 #
@@ -180,7 +202,7 @@ if [[ $ping_result == "Connected" ]]; then
 		apt-get install --assume-yes ${apt_package_install_list[@]}
 		
 		# keep up-to-date
-		apt-get upgrade --assume-yes
+		# apt-get upgrade --assume-yes
 		
 		# Uninstal packages that are no longer needed
 		apt-get autoremove --assume-yes
@@ -366,22 +388,31 @@ function as_vagrant {
 }
 
 as_vagrant cp /srv/config/bash_profile /home/vagrant/.bash_profile
+echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
+
 as_vagrant cp /srv/config/bash_aliases /home/vagrant/.bash_aliases
+echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
+
 as_vagrant cp /srv/config/vimrc /home/vagrant/.vimrc
+echo " * Copied /srv/config/vimrc                             to /home/vagrant/.vimrc"
+
 if [[ ! -d /home/vagrant/.subversion ]]; then
 	as_vagrant mkdir /home/vagrant/.subversion
 fi
 as_vagrant cp /srv/config/subversion-servers /home/vagrant/.subversion/servers
+echo " * Copied /srv/config/subversion-servers                to /home/vagrant/.subversion/servers"
+
 if [[ ! -d /home/vagrant/bin ]]; then
 	as_vagrant mkdir /home/vagrant/bin
 fi
 as_vagrant rsync -rvzh --delete /srv/config/homebin/ /home/vagrant/bin/
-
-echo " * Copied /srv/config/bash_profile                      to /home/vagrant/.bash_profile"
-echo " * Copied /srv/config/bash_aliases                      to /home/vagrant/.bash_aliases"
-echo " * Copied /srv/config/vimrc                             to /home/vagrant/.vimrc"
-echo " * Copied /srv/config/subversion-servers                to /home/vagrant/.subversion/servers"
+chmod +x /home/vagrant/bin/*
 echo " * rsync'd /srv/config/homebin                          to /home/vagrant/bin"
+
+as_vagrant cp -R --remove-destination /srv/config/ssh/. /home/vagrant/.ssh
+as_vagrant chmod og-wx,og+r /home/vagrant/.ssh/*
+as_vagrant chmod u+rw,og-rwx /home/vagrant/.ssh/icl_rsa
+echo " * Copied /srv/config/ssh                               to /home/vagrant/.ssh"
 
 # If a bash_prompt file exists in the VVV config/ directory, copy to the VM.
 if [[ -f /srv/config/bash_prompt ]]; then
@@ -395,6 +426,18 @@ fi
 echo -e "\nFix sshd configuration..."
 
 sed -i '/AcceptEnv/c\#AcceptEnv' /etc/ssh/sshd_config
+
+# Configure git
+#
+#
+echo -e "\nConfiguring git..."
+# http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
+as_vagrant git config --global core.autocrlf input
+as_vagrant git config --global push.default simple
+
+# http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
+chmod -R +x /vagrant/config/git-templates
+as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
 
 # RESTART SERVICES
 #
@@ -599,12 +642,13 @@ PHP
 	fi;
 
 	# Checkout, install and configure WordPress trunk via core.svn
-	if [[ ! -d /srv/www/wordpress-trunk ]]; then
-		echo "Checking out WordPress trunk from core.svn, see https://core.svn.wordpress.org/trunk"
-		svn checkout https://core.svn.wordpress.org/trunk/ /srv/www/wordpress-trunk
-		cd /srv/www/wordpress-trunk
-		echo "Configuring WordPress trunk..."
-		wp core config --dbname=wordpress_trunk --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+	if [[ ${provision_config[skip-trunk-site-provisioning]} == 0 ]]; then
+		if [[ ! -d /srv/www/wordpress-trunk ]]; then
+			echo "Checking out WordPress trunk from core.svn, see https://core.svn.wordpress.org/trunk"
+			svn checkout https://core.svn.wordpress.org/trunk/ /srv/www/wordpress-trunk
+			cd /srv/www/wordpress-trunk
+			echo "Configuring WordPress trunk..."
+			wp core config --dbname=wordpress_trunk --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
 // Match any requests made via xip.io.
 if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(local.wordpress-trunk.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(.xip.io)\z/', \$_SERVER['HTTP_HOST'] ) ) {
 	define( 'WP_HOME', 'http://' . \$_SERVER['HTTP_HOST'] );
@@ -613,22 +657,28 @@ if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(local.wordpress-trunk.)\d
 
 define( 'WP_DEBUG', true );
 PHP
-		echo "Installing WordPress trunk..."
-		wp core install --url=local.wordpress-trunk.dev --quiet --title="Local WordPress Trunk Dev" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
-	else
-		echo "Updating WordPress trunk..."
-		cd /srv/www/wordpress-trunk
-		svn up
+			echo "Installing WordPress trunk..."
+			wp core install --url=local.wordpress-trunk.dev --quiet --title="Local WordPress Trunk Dev" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
+		else
+			echo "Updating WordPress trunk..."
+			cd /srv/www/wordpress-trunk
+			svn up
+		fi
+		wp_install_otgs_resources "WordPress trunk"
 	fi
-	wp_install_otgs_resources "WordPress trunk"
 
-	# Checkout, install and configure WordPress trunk via develop.svn
-	if [[ ! -d /srv/www/wordpress-develop ]]; then
-		echo "Checking out WordPress trunk from develop.svn, see https://develop.svn.wordpress.org/trunk"
-		svn checkout https://develop.svn.wordpress.org/trunk/ /srv/www/wordpress-develop
-		cd /srv/www/wordpress-develop/src/
-		echo "Configuring WordPress develop..."
-		wp core config --dbname=wordpress_develop --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+
+
+
+	if [[ ${provision_config[skip-develop-site-provisioning]} == 0 ]]; then
+
+		# Checkout, install and configure WordPress trunk via develop.svn
+		if [[ ! -d /srv/www/wordpress-develop ]]; then
+			echo "Checking out WordPress trunk from develop.svn, see https://develop.svn.wordpress.org/trunk"
+			svn checkout https://develop.svn.wordpress.org/trunk/ /srv/www/wordpress-develop
+			cd /srv/www/wordpress-develop/src/
+			echo "Configuring WordPress develop..."
+			wp core config --dbname=wordpress_develop --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
 // Match any requests made via xip.io.
 if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(src|build)(.wordpress-develop.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(.xip.io)\z/', \$_SERVER['HTTP_HOST'] ) ) {
 	define( 'WP_HOME', 'http://' . \$_SERVER['HTTP_HOST'] );
@@ -641,35 +691,39 @@ if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(src|build)(.wordpress-dev
 
 define( 'WP_DEBUG', true );
 PHP
-		echo "Installing WordPress develop..."
-		wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
-		cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
-		cd /srv/www/wordpress-develop/
-		echo "Running npm install for the first time, this may take several minutes..."
-		npm --verbose install 2>&1 | process_npm_verbose_output
-	else
-		echo "Updating WordPress develop..."
-		cd /srv/www/wordpress-develop/
-		if [[ -e .svn ]]; then
-			svn up
+			echo "Installing WordPress develop..."
+			wp core install --url=src.wordpress-develop.dev --quiet --title="WordPress Develop" --admin_name=admin --admin_email="admin@local.dev" --admin_password="password"
+			cp /srv/config/wordpress-config/wp-tests-config.php /srv/www/wordpress-develop/
+			cd /srv/www/wordpress-develop/
+			echo "Running npm install for the first time, this may take several minutes..."
+			npm --verbose install 2>&1 | process_npm_verbose_output
 		else
-			if [[ $(git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
-				git pull --no-edit git://develop.git.wordpress.org/ master
+			echo "Updating WordPress develop..."
+			cd /srv/www/wordpress-develop/
+			if [[ -e .svn ]]; then
+				svn up
 			else
-				echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
+				if [[ $(git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
+					git pull --no-edit git://develop.git.wordpress.org/ master
+				else
+					echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
+				fi
 			fi
+			echo "Updating npm packages..."
+			npm --verbose install 2>&1 | process_npm_verbose_output
 		fi
-		echo "Updating npm packages..."
-		npm --verbose install 2>&1 | process_npm_verbose_output
-	fi
-	cd /srv/www/wordpress-develop/src/
-	wp_install_otgs_resources "WordPress develop"
+		cd /srv/www/wordpress-develop/src/
+		wp_install_otgs_resources "WordPress develop"
 
-	if [[ ! -d /srv/www/wordpress-develop/build ]]; then
-		echo "Initializing grunt in WordPress develop... This may take a few moments."
-		cd /srv/www/wordpress-develop/
-		grunt
+		if [[ ! -d /srv/www/wordpress-develop/build ]]; then
+			echo "Initializing grunt in WordPress develop... This may take a few moments."
+			cd /srv/www/wordpress-develop/
+			grunt
+		fi
 	fi
+
+
+
 
 	# Download phpMyAdmin
 	if [[ ! -d /srv/www/default/database-admin ]]; then

@@ -56,6 +56,18 @@ function get_password {
 }
 
 
+function run_afterwards_command {
+	I=$1
+	RES_AFTERWARDS=`jqcr $I afterwards`
+	if [ -n "$RES_AFTERWARDS" ]; then
+		if [ "$RES_AFTERWARDS" != "null" ]; then
+			echo "Running command afterwards: $RES_AFTERWARDS"
+			eval $RES_AFTERWARDS
+		fi
+	fi
+}
+
+
 # SVN repository handler
 # Arguments:
 #	1. Resource index
@@ -72,7 +84,8 @@ function handle_svn_repository {
 	SVN_PASSWORD=`get_password "$CREDENTIALS_FILE"`
 	
 	echo "Performing SVN checkout as user $SVN_USER from $RES_SOURCE to $RES_DESTINATION..."
-	sudo -u vagrant -i -- svn checkout --username "$SVN_USER" --password "$SVN_PASSWORD" "$RES_SOURCE" "$RES_DESTINATION"
+	sudo -u vagrant -i -- svn checkout --username "$SVN_USER" --password "$SVN_PASSWORD" "$RES_SOURCE" "$RES_DESTINATION" 
+	run_afterwards_command "$I"
 }
 
 
@@ -80,12 +93,19 @@ function handle_svn_repository {
 function install_default_plugins() { 
 	echo "Installing and activating default plugins..."
 	
+	local PLUGINS_DIR=`sudo --u vagrant -- wp eval 'echo WP_CONTENT_DIR . "/plugins";'`
+	
 	# Skip comments and empty lines	
 	grep -v '\(^\s*#\|^\s*$\)' < /srv/config/default-plugins | {
 		# Iterate through all plugin names
 		while read plugin_name; do
 			echo "Installing $plugin_name..."
-			sudo --u vagrant -- wp plugin install "$plugin_name" --activate
+			
+			if [ -d "$PLUGINS_DIR/$plugin_name" ]; then
+				echo "Destination already exists. Skipping."
+			else
+				sudo --u vagrant -- wp plugin install "$plugin_name" --activate &
+			fi
 		done 
 	}
 }
@@ -102,15 +122,33 @@ function handle_git_repository {
 	RES_DESTINATION="$3"
 
 	RES_CREDENTIALS=`jqcr $I credentials`
-	CREDENTIALS_FILE=`get_credentials_file "$RES_CREDENTIALS"`
-	GIT_USER=`get_username "$CREDENTIALS_FILE"`
-	GIT_PASSWORD=`get_password "$CREDENTIALS_FILE"`
-
-	# todo support SSH in the future
-	GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
 	
-	echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
-	sudo -u vagrant -i -- git clone "$GIT_SRC" "$RES_DESTINATION"
+	local use_credentials=0;
+	if [ -n "$RES_CREDENTIALS" ]; then
+		if [ "$RES_CREDENTIALS" != "null" ]; then
+			use_credentials=1
+		fi
+	fi
+
+	if [[ $use_credentials == 1 ]]; then
+		CREDENTIALS_FILE=`get_credentials_file "$RES_CREDENTIALS"`
+		GIT_USER=`get_username "$CREDENTIALS_FILE"`
+		GIT_PASSWORD=`get_password "$CREDENTIALS_FILE"`
+
+		# todo support SSH in the future
+		GIT_SRC="https://$GIT_USER:$GIT_PASSWORD@$RES_SOURCE"
+		
+		echo "Performing GIT clone as user $GIT_USER from $RES_SOURCE to $RES_DESTINATION..."
+	else
+		GIT_SRC="$RES_SOURCE"
+		echo "Performing GIT clone (without login) from $GIT_SRC to $RES_DESTINATION..."
+	fi
+
+	sudo -u vagrant -i -- git clone "$GIT_SRC" "$RES_DESTINATION" 
+	
+	cd "$RES_DESTINATION"
+	run_afterwards_command "$I"
+	cd -
 
 	#echo 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > gitssh
 	#chmod +x ssh
@@ -129,8 +167,10 @@ function handle_zip_repository {
 	local ASSET_TYPE=$(jqcr $I asset_type)
 	
 	echo "Installing $ASSET_TYPE from local zip file $RES_SOURCE"
-	sudo -u vagrant -- wp $ASSET_TYPE install "$RES_SOURCE"
+	sudo -u vagrant -- wp $ASSET_TYPE install "$RES_SOURCE" 
+	run_afterwards_command "$I"
 }
+
 
 #
 # main
@@ -139,6 +179,9 @@ function handle_zip_repository {
 figlet -cf slant VOV
 echo
 echo "vov_checkout starting..."
+
+# default plugins from wordpress.org
+install_default_plugins
 
 RESOURCE_COUNT=`jqc '.resources | length'`
 
@@ -163,26 +206,19 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	else
 		case $RES_TYPE in
 			svn)
-				handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+				handle_svn_repository $I "$RES_SOURCE" "$RES_DESTINATION" 
 				;;
 			git)
-				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION"
+				handle_git_repository $I "$RES_SOURCE" "$RES_DESTINATION" 
 				;;
 			zip)
-				handle_zip_repository $I "$RES_SOURCE" 
+				handle_zip_repository $I "$RES_SOURCE" &
 				;;
 			*)
 				echo "Repository type not supported."
 				;;
 		esac
 
-		RES_AFTERWARDS=`jqcr $I afterwards`
-		if [ -n "$RES_AFTERWARDS" ]; then
-			if [ "$RES_AFTERWARDS" != "null" ]; then
-				echo "Running command afterwards: $RES_AFTERWARDS"
-				eval $RES_AFTERWARDS
-			fi
-		fi
 	fi
 
 	echo ""
@@ -190,7 +226,7 @@ while [ $I -lt $RESOURCE_COUNT ]; do
 	let I=I+1
 done
 
-# default plugins from wordpress.org
-install_default_plugins
+echo "Waiting for vov_checkout subcommands..."
+wait
 
 echo "vov_checkout finished."
