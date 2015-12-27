@@ -82,6 +82,12 @@ function array_contains() {
 }
 
 
+# contains aList anItem
+function contains() {
+    [[ $1 =~ $2 ]] && return 0 || return 1
+}
+
+
 
 # ******************************************************************************
 #		User input
@@ -575,6 +581,8 @@ function vov_repo_update {
 		UPDATE_COMMAND="repository_update $UPDATE_ARGS $UPDATE_PATH; repository_update --only-subdirs $UPDATE_ARGS $UPDATE_PATH"
 	fi
 	
+	UPDATE_COMMAND="xdebug_off; $UPDATE_COMMAND"
+	
 	./vov -q run "$UPDATE_COMMAND"
 }
 
@@ -720,6 +728,90 @@ function vov_clear_site {
 	cmd="$cmd; wp plugin activate --all;"
 	
 	./vov -q run "$cmd"
+}
+
+
+function vov_site_duplicate {
+
+	if_not_quiet echo_g "Initializing..."
+	
+	run_sudo
+	
+	local site="$1"
+	shift
+	
+	local mode="$1"
+	shift
+	if ! contains "url dir" $mode; then
+		echo_w "Invalid mode (url/dir). Aborting."
+		return
+	fi
+	
+	local installer_path=""
+	local package_path=""
+
+	while [ ! -z "$1" ]; do
+		arg="$1"
+		shift
+		
+		case "$arg" in
+			--installer)
+				installer_path="$1"
+				;;
+			--package)
+				package_path="$1"
+				;;
+		esac
+	done
+
+	if_not_quiet echo_g "Preparing temporary download destination..."
+	local download_path="./provision/duplicator_packages/tmp"
+	rm -rf "$download_path"
+	mkdir -p "$download_path" 
+	local installer_dst="$download_path/installer.php"
+	local package_dst="$download_path/package.zip"
+	
+	if_not_quiet echo_g "Getting duplicator files..."
+	if [[ $mode == "url" ]]; then
+		wget -o "$installer_dst" -- "$installer_path"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while downloading installer.php from $installer_path. Aborting."
+			return
+		fi
+		wget -o "$package_dst" -- "$package_path"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while downloading the duplicator package from $package_path. Aborting."
+			return
+		fi
+	else
+		cp -v "$installer_path" "$installer_dst"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while copying installer.php from $installer_path. Aborting."
+			return
+		fi
+		cp -v "$package_path" "$package_dst"
+		if [ $? -ne 0 ]; then
+			echo_w "Error while copying the duplicator package from $package_path. Aborting."
+			return
+		fi
+	fi
+
+	if_not_quiet echo_g "Creating the blank site with vv..."
+	local vv_args="--defaults --name $site --domain $site.wordpress.dev --blank-with-db"
+	yes | externals/vv/vv create $vv_args
+	local site_dir="/srv/www/$site/htdocs"
+	
+	local cmd_mkdir="mkdir -p $site_dir"
+	local cmd_copy_installer="cp /vagrant/provision/duplicator_packages/tmp/installer.php $site_dir/installer.php"
+	local cmd_copy_package="cp /vagrant/provision/duplicator_packages/tmp/package.zip $site_dir/package.zip"	
+	local vov_command="$cmd_mkdir; cd $site_dir; wp core download; $cmd_copy_installer; $cmd_copy_package"
+	./vov -q run "$vov_command"
+	
+	echo_y "Please visit http://$site.wordpress.dev/installer.php and install the Duplicator package."
+	echo
+	echo_w "Database name: $site"
+	echo_w "Database user name: wp"
+	echo_w "Database password: wp"
 }
 
 
@@ -1017,6 +1109,12 @@ case "$IN_ACTION" in
 			# clear site's database
 			clear)
 				vov_clear_site "$IN_SITE_NAME" "$@"
+				;;
+				
+				
+			# create new site from duplicator package
+			duplicate)
+				vov_site_duplicate "$IN_SITE_NAME" "$@"
 				;;
 
 

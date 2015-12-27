@@ -22,6 +22,9 @@
 /provision/config
 /provision/config.bak
 
+# Temporary directory for duplicator packages
+/provision/duplicator_packages/tmp
+
 # Ignore custom trigger scripts in config/homebin.
 /config/homebin/vagrant_halt_custom
 /config/homebin/vagrant_suspend_custom
