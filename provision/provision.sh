@@ -435,6 +435,10 @@ echo -e "\nConfiguring git..."
 as_vagrant git config --global core.autocrlf input
 as_vagrant git config --global push.default simple
 
+# http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
+chmod -R +x /vagrant/config/git-templates
+as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
+
 # RESTART SERVICES
 #
 # Make sure the services we expect to be running are running.
