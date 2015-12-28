@@ -363,7 +363,7 @@ function vov_init {
 	if [ "$IN_GENERATE_SSL_KEY" == "1" ];
 	then
 		echo_w "Running vov key..."
-		vov key
+		./vov key
 	fi
 
 	echo_w "Finished."
