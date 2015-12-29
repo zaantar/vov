@@ -74,6 +74,13 @@
 			"source" : "ssh://git@git.onthegosystems.com:10022/jan/vov-wp-cli-extensions.git",
 			"destination" : "wp-content/plugins/vov-wp-cli-extensions",
 			"afterwards" : "su -c 'wp plugin activate vov-wp-cli-extensions' vagrant"
+		},
+		{
+			"name" : "wordpress-plugin-dir-info",
+			"type" : "git",
+			"source" : "https://github.com/zaantar/wordpress-plugin-dir-info.git",
+			"destination" : "wp-content/plugins/plugin-dir-info",
+			"afterwards" : "su -c 'wp plugin activate plugin-dir-info' vagrant"
 		}
 	]
 }
