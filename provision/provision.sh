@@ -111,6 +111,7 @@ apt_package_check_list=(
 	jq # parsing and querying JSON, used by vov_checkout
 	figlet # text banners in terminal
 	git-flow # used in toolset plugins
+	myrepos # very useful "mr" command
 )
 
 echo "Check for apt packages to install..."
