@@ -104,7 +104,7 @@ function install_default_plugins() {
 			if [ -d "$PLUGINS_DIR/$plugin_name" ]; then
 				echo "Destination already exists. Skipping."
 			else
-				sudo --u vagrant -- wp plugin install "$plugin_name" --activate &
+				sudo --u vagrant -- wp plugin install "$plugin_name" --activate
 			fi
 		done 
 	}
