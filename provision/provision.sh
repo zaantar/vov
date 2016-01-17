@@ -140,6 +140,8 @@ typeset -A provision_config # init array
 provision_config=( # set default values in config array
     [skip-trunk-site-provisioning]=0
     [skip-develop-site-provisioning]=0
+    [user-name]=""
+    [user-email]=""
 )
 
 while read line
@@ -441,6 +443,16 @@ as_vagrant git config --global push.default simple
 # http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
 chmod -R +x /vagrant/config/git-templates
 as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
+
+git_name="${provision_config[user-name]}"
+if [[ $git_name ]]; then
+	as_vagrant git config --global user.name "$git_name"
+fi
+
+git_email="${provision_config[user-email]}"
+if [[ $git_email ]]; then
+	as_vagrant git config --global user.email "$git_email"
+fi
 
 # RESTART SERVICES
 #

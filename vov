@@ -441,6 +441,12 @@ function set_config_flag {
 }
 
 
+function set_config_verbose {
+	set_config "$@"
+	echo_w "Setting applied."
+}
+
+
 function vov_conf {
 	
 	local PROVISIONING_CONFIG_FILE="$VOV_PATH/provision/config"
@@ -455,6 +461,14 @@ function vov_conf {
 
 		skip-develop-site-provisioning)
 			set_config_flag "skip-develop-site-provisioning" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+			
+		user-name)
+			set_config_verbose "user-name" "$1" "$PROVISIONING_CONFIG_FILE"
+			;;
+			
+		user-email)
+			set_config_verbose "user-email" "$1" "$PROVISIONING_CONFIG_FILE"
 			;;
 
 		*)
