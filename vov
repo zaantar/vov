@@ -1039,6 +1039,13 @@ case "$IN_ACTION" in
 	provision)
 		vagrant provision "$@"
 		;;
+		
+	restart)
+		run_sudo
+		vagrant halt "$@"
+		vagrant up "$@"
+		vagrant ssh "$@"
+		;;
 
 	ssh)
 		echo_w "Connecting..."
