@@ -716,15 +716,17 @@ function vov_clear_site {
 	
 	local path="/srv/www/$site"
 	local url="http://$site.wordpress.dev"
+	local title="$site"
 	
-	if [ "$site" == "default" ] || [ "$site" == "" ]; then
+	if [ "$site" == "default" ] || [ "$site" == "" ] || [ "$site" == "wordpress-default" ]; then
 		local path="/srv/www/wordpress-default"
 		local url="http://local.wordpress.dev"
+		local title="local"
 	fi
 	
 	local cmd="cd \"$path\""
 	cmd="$cmd; wp db reset --yes"
-	cmd="$cmd; wp core install --title=\"$site\" --url=\"$url\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
+	cmd="$cmd; wp core install --title=\"$title\" --url=\"$url\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
 	cmd="$cmd; wp plugin activate --all;"
 	
 	./vov -q run "$cmd"
