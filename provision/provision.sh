@@ -426,7 +426,9 @@ fi
 # Disable the AcceptEnv settings
 echo -e "\nFix sshd configuration..."
 
-sed -i '/AcceptEnv/c\#AcceptEnv' /etc/ssh/sshd_config
+grep -v '^AcceptEnv' /etc/ssh/sshd_config > /etc/ssh/sshd_config.mod
+rm /etc/ssh/sshd_config
+mv /etc/ssh/sshd_config.mod /etc/ssh/sshd_config
 
 # Configure git
 #
