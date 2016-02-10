@@ -69,7 +69,7 @@ alias cdwpp='cdwp && cdp'
 alias cdv='cdwpp && cd wp-views'
 alias cdl='cdwpp && cd layouts'
 alias cdt='cdwpp && cd types'
-alias cdtcl='cdv && cd embedded/toolset/toolset-common'
+alias cdc='cd embedded/toolset/toolset-common'
 ###
 ### ack
 ###
