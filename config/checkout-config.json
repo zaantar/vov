@@ -62,6 +62,12 @@
 			"source" : "hello-security.zip"
 		},
 		{
+			"name" : "Hookr",
+			"type" : "zip",
+			"asset_type" : "plugin",
+			"source" : "hookr-1.0.0b.zip"
+		},
+		{
 			"name" : "WordPress-Plugin-Git-Branches-Info",
 			"type" : "git",
 			"source" : "https://github.com/kkarpieszuk/WordPress-Plugin-Git-Branches-Info.git",
