@@ -79,10 +79,3 @@
 # And a few of our web directories are important to share.
 /www/default/*
 !/www/default/index.php
-
-# Also include directories with custom sites with old WP versions (except the htdocs directories)
-!/www/wp341
-/www/wp341/htdocs
-
-!/www/wp352
-/www/wp352/htdocs
