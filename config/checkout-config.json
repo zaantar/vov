@@ -11,15 +11,15 @@
 			"name" : "Views",
 			"type" : "git", 
 			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/views.git",
-			"destination" : "wp-content/plugins/wp-views",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate wp-views' vagrant"
+			"destination" : "wp-content/plugins/views",
+			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate views' vagrant"
 		},
 		{
 			"name" : "CRED",
 			"type" : "git",
 			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/cred.git",
-			"destination" : "wp-content/plugins/cred-frontend-editor",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate cred-frontend-editor' vagrant"
+			"destination" : "wp-content/plugins/cred",
+			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate cred' vagrant"
 		},
 		{
 			"name" : "Layouts",
@@ -32,15 +32,15 @@
 			"name" : "Access",
 			"type" : "git",
 			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/access.git",
-			"destination" : "wp-content/plugins/types-access",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate types-access' vagrant"
+			"destination" : "wp-content/plugins/access",
+			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate access' vagrant"
 		},
 		{
 			"name" : "Module Manager",
 			"type" : "git",
 			"source" :	"ssh://git@git.onthegosystems.com:10022/toolset/module-manager.git",
-			"destination" : "wp-content/plugins/toolset-module-manager",
-			"afterwards" : "su -c 'wp plugin activate toolset-module-manager' vagrant"
+			"destination" : "wp-content/plugins/module-manager",
+			"afterwards" : "su -c 'wp plugin activate module-manager' vagrant"
 		},
 		{
 			"name" : "Toolset Starter",
@@ -52,8 +52,19 @@
 			"name" : "SitePress Multilingual CMS",
 			"type" : "git",
 			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/sitepress-multilingual-cms.git",
-			"destination" : "wp-content/plugins/sitepress-multilingual-cms",
-			"afterwards" : "sudo -u vagrant -- wp plugin activate sitepress-multilingual-cms"
+			"destination" : "wp-content/plugins/wpmlcore"
+		},
+		{
+			"name" : "WPML Translation Management",
+			"type" : "git",
+			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-translation-management.git",
+			"destination" : "wp-content/plugins/wpmltm"
+		},
+		{
+			"name" : "WPML String Translation",
+			"type" : "git",
+			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-string-translation.git",
+			"destination" : "wp-content/plugins/wpmlst"
 		},
 		{
 			"name" : "Hello Security",
