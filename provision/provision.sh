@@ -533,6 +533,7 @@ if [[ $ping_result == "Connected" ]]; then
 	else
 		echo -e "\nUpdating wp-cli..."
 		cd /srv/www/wp-cli
+		git reset --hard HEAD
 		git pull --rebase origin master
 		composer update
 	fi
