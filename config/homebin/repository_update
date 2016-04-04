@@ -118,6 +118,7 @@ function recursive_update {
 				else
 					echo_w "Git returned $git_ret."
 				fi
+				git --work-tree "$target" --git-dir "$target/.git" status
 			else
 				echo_g "Skipping pull."
 				local git_ret=0
