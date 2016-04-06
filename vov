@@ -130,7 +130,7 @@ function yes_no_question {
 	done
 	
 	eval $RETURN_VARIABLE="'$RESULT'"
-}
+}  
 
 
 # Ask user for credentials.
@@ -365,7 +365,7 @@ function vov_init {
 		echo_w "Running vov key..."
 		./vov key
 	fi
-
+ 
 	echo_w "Finished."
 	echo
 	echo_w "Now you are ready to run VOV with command:$COLOUR_YELLOW ./vov up"
@@ -1095,9 +1095,9 @@ case "$IN_ACTION" in
 	#
 
 	run)
-		run_command="'source .bash_profile; source .bash_aliases; source .bashrc; $@'"
+		run_command=" source .bash_profile ; source .bash_aliases ; source .bashrc ; $@ "
 		echo_w "Running command: $run_command"
-		vagrant ssh -- bash -ic $run_command
+		vov -q v ssh -- "$run_command"
 		;;
 
 	# Batch action with repositories
