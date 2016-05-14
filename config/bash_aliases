@@ -66,10 +66,12 @@ alias cdp='cd wp-content/plugins'
 alias cdth='cd wp-content/themes'
 alias cdwpp='cdwp && cdp'
 
-alias cdv='cdwpp && cd wp-views'
+alias cdv='cdwpp && cd views'
 alias cdl='cdwpp && cd layouts'
 alias cdt='cdwpp && cd types'
-alias cdc='cd embedded/toolset/toolset-common'
+alias cdc='cdwpp && cd cred'
+alias cdtcl='cdt && cd library/toolset/toolset-common'
+
 ###
 ### ack
 ###
