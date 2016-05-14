@@ -39,14 +39,17 @@ function run_sudo {
 	if [ "$IS_CYGWIN" == "1" ]; then
 		# sudo is not needed in cygwin - we will not print anything
 		return
+	elif [ "$IS_NOSUDO_MODE" == "1" ]; then
+		return
 	else
 		sudo echo "Superuser privileges granted."
 	fi
+	
 }
 
 
 function maybe_sudo {
-	if [ "$IS_CYGWIN" == "1" ]; then
+	if [ "$IS_CYGWIN" == "1" ] || [ "$IS_NOSUDO_MODE" == "1" ]; then
 		# sudo is not needed in cygwin
 		eval "$@"
 	else
@@ -739,9 +742,11 @@ function vov_clear_site {
 	fi
 	
 	local cmd="cd \"$path\""
+	cmd="$cmd; xdebug_off"
+	cmd="$cmd; wp plugin deactivate versionpress"
 	cmd="$cmd; wp db reset --yes"
 	cmd="$cmd; wp core install --title=\"$title\" --url=\"$url\" --admin_user=\"admin\" --admin_password=\"password\" --admin_email=\"admin@localhost.dev\""
-	cmd="$cmd; wp plugin activate --all;"
+	#cmd="$cmd; wp plugin activate --all;"
 	
 	./vov -q run "$cmd"
 }
@@ -918,15 +923,27 @@ function if_not_quiet {
 #		MAIN
 # ******************************************************************************
 
+IS_QUIET_MODE=0
+IS_NOSUDO_MODE=0
 
+while true; do
 
-if [[ $1 == "-q" ]]; then
-	# quiet mode
-	IS_QUIET_MODE=1
-	shift
-else
-	IS_QUIET_MODE=0
-fi
+	case $1 in
+	
+		"-q")
+			# quiet mode
+			IS_QUIET_MODE=1
+			shift
+			;;
+		"-ns")
+			IS_NOSUDO_MODE=1
+			shift
+			;;
+		*)
+			break
+			;;
+	esac
+done
 
 
 if_not_quiet echo
