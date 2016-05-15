@@ -17,6 +17,7 @@
 /provision/provision-custom.sh
 /provision/provision-pre.sh
 /provision/provision-post.sh
+/provision/github.token
 
 # Ignore custom provisioning shell script configuration
 /provision/config
@@ -24,12 +25,11 @@
 
 # Temporary directory for duplicator packages
 /provision/duplicator_packages/tmp
-
 # Ignore custom trigger scripts in config/homebin.
+/config/homebin/vagrant_up_custom
 /config/homebin/vagrant_halt_custom
 /config/homebin/vagrant_suspend_custom
 /config/homebin/vagrant_destroy_custom
-
 # Ignore personal SSL certificate
 /config/ssh/icl_rsa
 /config/ssh/icl_rsa.pub
@@ -45,7 +45,6 @@
 
 # No need to share our mysql data with each other
 /database/data/*
-
 # We definitely don't want to store any repository credentials
 /config/checkout-credentials/*
 
@@ -53,7 +52,7 @@
 /config/checkout-zipfiles/*
 
 # Log files should be ignored.
-/log
+/log/**/*.log
 
 # Generated documentation is of no interest
 /docs
@@ -79,3 +78,5 @@
 # And a few of our web directories are important to share.
 /www/default/*
 !/www/default/index.php
+# But not the custom phpMyAdmin config in the database-admin directory.
+/www/default/database-admin/config.inc.custom.php
