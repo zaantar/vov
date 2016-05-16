@@ -162,36 +162,43 @@ profile_setup() {
     cp "/srv/config/bash_prompt" "/home/vagrant/.bash_prompt"
     echo " * Copied /srv/config/bash_prompt to /home/vagrant/.bash_prompt"
   fi
-# Update sshd configuration.
-#
-# Disable the AcceptEnv settings
-echo -e "\nFix sshd configuration..."
+  
+  # Configure SSH for the vagrant user.
+  as_vagrant cp -R --remove-destination /srv/config/ssh/. /home/vagrant/.ssh
+  as_vagrant chmod og-wx,og+r /home/vagrant/.ssh/*
+  as_vagrant chmod u+rw,og-rwx /home/vagrant/.ssh/icl_rsa
+  echo " * Copied /srv/config/ssh                               to /home/vagrant/.ssh"
 
-grep -v '^AcceptEnv' /etc/ssh/sshd_config > /etc/ssh/sshd_config.mod
-rm /etc/ssh/sshd_config
-mv /etc/ssh/sshd_config.mod /etc/ssh/sshd_config
+  # Update sshd configuration.
+  #
+  # Disable the AcceptEnv settings
+  echo -e "\nFix sshd configuration..."
 
-# Configure git
-#
-#
-echo -e "\nConfiguring git..."
-# http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
-as_vagrant git config --global core.autocrlf input
-as_vagrant git config --global push.default simple
+  grep -v '^AcceptEnv' /etc/ssh/sshd_config > /etc/ssh/sshd_config.mod
+  rm /etc/ssh/sshd_config
+  mv /etc/ssh/sshd_config.mod /etc/ssh/sshd_config
 
-# http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
-chmod -R +x /vagrant/config/git-templates
-as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
+  # Configure git
+  #
+  #
+  echo -e "\nConfiguring git..."
+  # http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
+  as_vagrant git config --global core.autocrlf input
+  as_vagrant git config --global push.default simple
 
-git_name="${provision_config[user-name]}"
-if [[ $git_name ]]; then
-	as_vagrant git config --global user.name "$git_name"
-fi
+  # http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
+  chmod -R +x /vagrant/config/git-templates
+  as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
 
-git_email="${provision_config[user-email]}"
-if [[ $git_email ]]; then
+  git_name="${provision_config[user-name]}"
+  if [[ $git_name ]]; then
+  	as_vagrant git config --global user.name "$git_name"
+  fi
+
+  git_email="${provision_config[user-email]}"
+  if [[ $git_email ]]; then
 	as_vagrant git config --global user.email "$git_email"
-fi
+  fi
 }
 
 not_installed() {
