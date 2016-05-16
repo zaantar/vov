@@ -435,16 +435,18 @@ tools_install() {
   # config and actual path.
   echo "Adding graphviz symlink for Webgrind..."
   ln -sf "/usr/bin/dot" "/usr/local/bin/dot"
-    	# phpDocumentor
-	#
-	# Install phpDocumentor by the easiest method possible. The phpdoc
-	# command will be available from any path in the system.
-	#
-	# The --nocompress is a workaround for this bug:
-	# http://askubuntu.com/questions/590037/error-installing-phpdocumentor-on-ubuntu-14-04
-	echo "Installing phpDocumentor..."
-	pear channel-discover pear.phpdoc.org
-	pear install --nocompress phpdoc/phpDocumentor
+    
+  # phpDocumentor
+  #
+  # Install phpDocumentor by the easiest method possible. The phpdoc
+  # command will be available from any path in the system.
+  #
+  # The --nocompress is a workaround for this bug:
+  # http://askubuntu.com/questions/590037/error-installing-phpdocumentor-on-ubuntu-14-04
+  echo "Installing phpDocumentor..."
+
+  pear channel-discover pear.phpdoc.org
+  pear install --nocompress phpdoc/phpDocumentor
 }
 
 nginx_setup() {
