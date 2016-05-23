@@ -45,6 +45,8 @@ apt_package_check_list=(
   php7.0-mysql
   php7.0-imap
   php7.0-curl
+  php7.0-zip
+
   php-pear
   php7.0-gd
 
