@@ -7,6 +7,11 @@
 # turn loads the .bash_aliases file that we provide. Use this
 # bash_profile to set environment variables and such.
 
+# git-aware prompt
+# https://github.com/jimeh/git-aware-prompt
+export GITAWAREPROMPT=~/bin/git-aware-prompt
+source "${GITAWAREPROMPT}/main.sh"
+
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
     # include .bashrc if it exists
@@ -31,6 +36,7 @@ fi
 # Set the WP_TESTS_DIR path directory so that we can use phpunit inside
 # plugins almost immediately.
 export WP_TESTS_DIR=/srv/www/wordpress-develop/tests/phpunit/
+
 # Set the WP_CORE_DIR path so phpunit tests are run against WP trunk
 export WP_CORE_DIR=/srv/www/wordpress-develop/src/
 
@@ -42,3 +48,6 @@ eval "$(grunt --completion=bash)"
 
 # PHPCS path
 export PATH="$PATH:/srv/www/phpcs/scripts/"
+
+# git-aware prompt
+export PS1="\${debian_chroot:+(\$debian_chroot)}\u@\h:\w \[$txtcyn\]\$git_branch\[$txtred\]\$git_dirty\[$txtrst\]\$ "
