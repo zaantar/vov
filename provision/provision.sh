@@ -135,6 +135,38 @@ noroot() {
   sudo -EH -u "vagrant" "$@";
 }
 
+
+# init array
+declare -A provision_config=( [skip-trunk-site-provisioning]=0 [skip-develop-site-provisioning]=0 [user-name]="" [user-email]="" )
+
+
+read_provisioning_config() {
+	# Read custom provisioning configuration
+	#
+	#
+	provision_config_file="/vagrant/provision/config"
+
+
+	while read line
+	do
+		if echo $line | grep -F = &>/dev/null
+		then
+			local varname=$(echo "$line" | cut -d '=' -f 1)
+			local value=$(echo "$line" | cut -d '=' -f 2-)
+			echo "$varname := $value"
+			provision_config[$varname]="$value"
+		fi
+	done < "$provision_config_file"
+
+	echo "### Provision config: "
+
+	for i in "${!provision_config[@]}"
+	do
+	  echo "key  : $i ; value: ${provision_config[$i]}"
+	done
+}
+
+
 profile_setup() {
   # Copy custom dotfiles and bin file for the vagrant user from local
   cp "/srv/config/bash_profile" "/home/vagrant/.bash_profile"
@@ -166,9 +198,9 @@ profile_setup() {
   fi
   
   # Configure SSH for the vagrant user.
-  as_vagrant cp -R --remove-destination /srv/config/ssh/. /home/vagrant/.ssh
-  as_vagrant chmod og-wx,og+r /home/vagrant/.ssh/*
-  as_vagrant chmod u+rw,og-rwx /home/vagrant/.ssh/icl_rsa
+  noroot cp -R --remove-destination /srv/config/ssh/. /home/vagrant/.ssh
+  noroot chmod og-wx,og+r /home/vagrant/.ssh/*
+  noroot chmod u+rw,og-rwx /home/vagrant/.ssh/icl_rsa
   echo " * Copied /srv/config/ssh                               to /home/vagrant/.ssh"
 
   # Update sshd configuration.
@@ -185,21 +217,23 @@ profile_setup() {
   #
   echo -e "\nConfiguring git..."
   # http://stackoverflow.com/questions/2016673/definitive-recommendation-for-git-autocrlf-settings
-  as_vagrant git config --global core.autocrlf input
+  noroot git config --global core.autocrlf input
   as_vagrant git config --global push.default simple
 
   # http://nschoenmaker.nl/2013/07/composer-post-checkout-hook-in-git/
   chmod -R +x /vagrant/config/git-templates
-  as_vagrant git config --global init.templatedir '/vagrant/config/git-templates'
+  noroot git config --global init.templatedir '/vagrant/config/git-templates'
 
-  git_name="${provision_config[user-name]}"
+  local git_name=${provision_config[user-name]}
+  echo " * user.name = \"$git_name\""
   if [[ $git_name ]]; then
-  	as_vagrant git config --global user.name "$git_name"
+  	noroot git config --global user.name "$git_name"
   fi
 
-  git_email="${provision_config[user-email]}"
+  local git_email=${provision_config[user-email]}
+  echo " * user.email = \"$git_email\""
   if [[ $git_email ]]; then
-	as_vagrant git config --global user.email "$git_email"
+	noroot git config --global user.email "$git_email"
   fi
 }
 
@@ -230,30 +264,6 @@ echo "Check for apt packages to install..."
       printf " * $pkg %${real_space}.${#package_version}s ${package_version}\n"
     fi
   done
-}
-
-read_provisioning_config() {
-# Read custom provisioning configuration
-#
-#
-provision_config_file="/vagrant/provision/config"
-
-typeset -A provision_config # init array
-provision_config=( # set default values in config array
-    [skip-trunk-site-provisioning]=0
-    [skip-develop-site-provisioning]=0
-    [user-name]=""
-    [user-email]=""
-)
-
-while read line
-do
-    if echo $line | grep -F = &>/dev/null
-    then
-        varname=$(echo "$line" | cut -d '=' -f 1)
-        provision_config[$varname]=$(echo "$line" | cut -d '=' -f 2-)
-    fi
-done < "$provision_config_file"
 }
 
 package_install() {
@@ -412,7 +422,7 @@ tools_install() {
   if [[ -n "$(composer --version --no-ansi | grep 'Composer version')" ]]; then
     echo "Updating Composer..."
     COMPOSER_HOME=/usr/local/src/composer composer self-update
-    COMPOSER_HOME=/usr/local/src/composer composer -q global require --no-update phpunit/phpunit:4.8.*
+    COMPOSER_HOME=/usr/local/src/composer composer -q global require --no-update phpunit/phpunit:5.4.*
     COMPOSER_HOME=/usr/local/src/composer composer -q global require --no-update phpunit/php-invoker:1.1.*
     COMPOSER_HOME=/usr/local/src/composer composer -q global require --no-update mockery/mockery:0.9.*
     COMPOSER_HOME=/usr/local/src/composer composer -q global require --no-update d11wtq/boris:v1.0.8
