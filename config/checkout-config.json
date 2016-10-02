@@ -98,6 +98,12 @@
 			"source" : "https://github.com/zaantar/wordpress-plugin-dir-info.git",
 			"destination" : "wp-content/plugins/plugin-dir-info",
 			"afterwards" : "su -c 'wp plugin activate plugin-dir-info' vagrant"
-		}
+		},
+        {
+			"name" : "Airplane mode",
+			"type" : "git",
+			"source" : "https://github.com/norcross/airplane-mode.git",
+			"destination" : "wp-content/plugins/airplane-mode"
+        }
 	]
 }
