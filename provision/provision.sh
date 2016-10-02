@@ -212,6 +212,9 @@ profile_setup() {
   rm /etc/ssh/sshd_config
   mv /etc/ssh/sshd_config.mod /etc/ssh/sshd_config
 
+}
+
+configure_git() {
   # Configure git
   #
   #
@@ -661,6 +664,19 @@ services_restart() {
   usermod -a -G www-data vagrant
 }
 
+create_swap() {
+	if [ ! -f /swapfile ]; then
+		dd if=/dev/zero of=/swapfile bs=1K count=1M
+		chown root:root /swapfile
+		chmod 0600 /swapfile
+		mkswap /swapfile
+		swapon /swapfile
+		echo '/swapfile none swap sw 0 0' >> /etc/fstab
+	else
+		echo "Swapfile already exists."
+	fi
+}
+
 wp_cli() {
   # WP-CLI Install
   if [[ ! -d "/srv/www/wp-cli" ]]; then
@@ -971,6 +987,9 @@ read_provisioning_config
 echo "Bash profile setup and directories."
 profile_setup
 
+echo "Create swapfile"
+create_swap
+
 network_check
 # Package and Tools Install
 echo " "
@@ -980,6 +999,7 @@ tools_install
 nginx_setup
 mailcatcher_setup
 phpfpm_setup
+configure_git
 services_restart
 mysql_setup
 
