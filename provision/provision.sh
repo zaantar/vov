@@ -172,6 +172,7 @@ profile_setup() {
   cp "/srv/config/bash_profile" "/home/vagrant/.bash_profile"
   cp "/srv/config/bash_aliases" "/home/vagrant/.bash_aliases"
   cp "/srv/config/vimrc" "/home/vagrant/.vimrc"
+  cp "/srv/config/ackrc" "/home/vagrant/.ackrc"
 
   if [[ ! -d "/home/vagrant/.subversion" ]]; then
     mkdir "/home/vagrant/.subversion"
