@@ -67,6 +67,12 @@
 			"destination" : "wp-content/plugins/wpmlst"
 		},
 		{
+			"name" : "WPML dev files",
+			"type" : "git",
+			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-dev-files.git",
+			"destination" : "wp-content/plugins/wpml-dev-files"
+		},
+		{
 			"name" : "Hello Security",
 			"type" : "zip",
 			"asset_type" : "plugin",
@@ -104,6 +110,12 @@
 			"type" : "git",
 			"source" : "https://github.com/norcross/airplane-mode.git",
 			"destination" : "wp-content/plugins/airplane-mode"
-        }
+        },
+        {
+			"name" : "otgs-cli",
+			"type" : "git",
+			"source" : "ssh://git@git.onthegosystems.com:10022/abdallah/otgs-cli.git",
+			"destination" : "wp-content/plugins/otgs-cli"
+		}
 	]
 }
