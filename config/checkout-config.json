@@ -1,78 +1,6 @@
 {
 	"resources": [
 		{
-			"name" : "Types",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/types.git",
-			"destination" : "wp-content/plugins/types",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate types' vagrant"
-		},
-		{
-			"name" : "Views",
-			"type" : "git", 
-			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/views.git",
-			"destination" : "wp-content/plugins/views",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate views' vagrant"
-		},
-		{
-			"name" : "CRED",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/cred.git",
-			"destination" : "wp-content/plugins/cred",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate cred' vagrant"
-		},
-		{
-			"name" : "Layouts",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/layouts.git",
-			"destination" : "wp-content/plugins/layouts",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate layouts' vagrant"
-		},
-		{
-			"name" : "Access",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/toolset/access.git",
-			"destination" : "wp-content/plugins/access",
-			"afterwards" : "su -c 'composer install --no-autoloader; wp plugin activate access' vagrant"
-		},
-		{
-			"name" : "Module Manager",
-			"type" : "git",
-			"source" :	"ssh://git@git.onthegosystems.com:10022/toolset/module-manager.git",
-			"destination" : "wp-content/plugins/module-manager",
-			"afterwards" : "su -c 'wp plugin activate module-manager' vagrant"
-		},
-		{
-			"name" : "Toolset Starter",
-			"type" : "git",
-			"source" :	"ssh://git@git.onthegosystems.com:10022/reference-sites/toolset-starter.git",
-			"destination" : "wp-content/themes/toolset-starter"
-		},
-		{
-			"name" : "SitePress Multilingual CMS",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/sitepress-multilingual-cms.git",
-			"destination" : "wp-content/plugins/wpmlcore"
-		},
-		{
-			"name" : "WPML Translation Management",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-translation-management.git",
-			"destination" : "wp-content/plugins/wpmltm"
-		},
-		{
-			"name" : "WPML String Translation",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-string-translation.git",
-			"destination" : "wp-content/plugins/wpmlst"
-		},
-		{
-			"name" : "WPML dev files",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/wpml/wpml-dev-files.git",
-			"destination" : "wp-content/plugins/wpml-dev-files"
-		},
-		{
 			"name" : "Hello Security",
 			"type" : "zip",
 			"asset_type" : "plugin",
@@ -92,13 +20,6 @@
 			"afterwards" : "su -c 'wp plugin activate wordpress-plugin-git-branches-info' vagrant"
 		},
 		{
-			"name" : "VOV WP-CLI Extensions",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/jan/vov-wp-cli-extensions.git",
-			"destination" : "wp-content/plugins/vov-wp-cli-extensions",
-			"afterwards" : "su -c 'wp plugin activate vov-wp-cli-extensions' vagrant"
-		},
-		{
 			"name" : "wordpress-plugin-dir-info",
 			"type" : "git",
 			"source" : "https://github.com/zaantar/wordpress-plugin-dir-info.git",
@@ -110,12 +31,6 @@
 			"type" : "git",
 			"source" : "https://github.com/norcross/airplane-mode.git",
 			"destination" : "wp-content/plugins/airplane-mode"
-        },
-        {
-			"name" : "otgs-cli",
-			"type" : "git",
-			"source" : "ssh://git@git.onthegosystems.com:10022/abdallah/otgs-cli.git",
-			"destination" : "wp-content/plugins/otgs-cli"
-		}
+        }
 	]
 }
