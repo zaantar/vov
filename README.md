@@ -38,7 +38,7 @@ These features have been added on top of what VVV offers:
     - Automatic installation of Vagrant plugins
     - You should be required to enter your GIT and SVN credentials only once.
     - All you need to do is run an [init script](vov-sh#init) before you run `vagrant up` for the first time.
-- **Checkout/cloning of OTGS plugins and themes from our repositories, automatically, on all sites.** You only need to provide your credentials when running the init script. Everything else is completely automated and be [easily reconfigured](other-modifications).
+- **Checkout/cloning of selected plugins and themes - atomatically, on all sites.** You only need to provide your credentials when running the init script. Everything else is completely automated and be [easily reconfigured](other-modifications).
 - A set of [various WordPress sites](site-management) with different versions.
 - [Set of pre-installed plugins](default-plugins) from WordPress plugin repository. Easily customizable.
 - Easy [creating and deleting](site-management) of WordPress sites.
