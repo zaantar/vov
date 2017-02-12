@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# Suffix "-dev" means that this is development version *following* the given version number.
-# Among other reason, this is because sort -V doesn't work well with string suffixes and 0.1-dev
-# will be considered greater version than just 0.1.
-VOV_VERSION='0.3'
-
+VOV_VERSION='0.4'
 
 ###
 ### terminal output formatting
