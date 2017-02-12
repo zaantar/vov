@@ -95,7 +95,9 @@ alias svndiff='svn diff | colourdiff'
 
 # composer update
 alias cu='xdebug_off; composer update --no-autoloader'
-
+alias ci='composer install --no-autoloader'
+alias cia='composer install'
+alias cua='composer update'
 
 ###
 ### otgs tools 
