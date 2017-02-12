@@ -113,92 +113,15 @@ function wp_plugins_dir {
 	echo $content_dir/plugins
 }
 
-# switch between embedded and full views
-
-function views_embedded {
-	say_vov
-	echo_w "Switching to embedded Views..."
-	local plugins_dir=`wp_plugins_dir`
-
-	echo "Deactivating wp-views"
-	wp plugin deactivate wp-views
-
-	echo "Moving plugin files"
-	mv "$plugins_dir/wp-views/embedded" "$plugins_dir/embedded-views"
-
-	echo "Activating embedded-views"
-	wp plugin activate embedded-views
-
-	echo
-	echo_y "Embedded Views is now active"
-	echo
-}
-
-function views_full {
-	say_vov
-	echo_w "Switching to full Views..."
-	local plugins_dir=`wp_plugins_dir`
-
-	echo "Deactivating embedded-views"
-	wp plugin deactivate embedded-views
-
-	echo "Moving plugin files"
-	mv "$plugins_dir/embedded-views" "$plugins_dir/wp-views/embedded"
-
-	echo "Activating wp-views"
-	wp plugin activate wp-views
-
-	echo
-	echo_y "Full Views is now active"
-	echo
-}
-
-
-# switch between embedded and full
-function types_embedded {
-	say_vov
-	echo_w "Switching to embedded Types..."
-	local plugins_dir=`wp_plugins_dir`
-
-	echo "Deactivating types"
-	wp plugin deactivate types
-
-	echo "Moving plugin files"
-	mv "$plugins_dir/types/embedded" "$plugins_dir/embedded-types"
-
-	echo "Activating embedded-types"
-	wp plugin activate embedded-types
-
-	echo
-	echo_y "Embedded Types is now active"
-	echo
-}
-
-
-function types_full {
-	say_vov
-	echo_w "Switching to full Types..."
-	local plugins_dir=`wp_plugins_dir`
-
-	echo "Deactivating embedded-types"
-	wp plugin deactivate embedded-types
-
-	echo "Moving plugin files"
-	mv "$plugins_dir/embedded-types" "$plugins_dir/types/embedded"
-
-	echo "Activating types"
-	wp plugin activate types
-
-	echo
-	echo_y "Full Types is now active"
-	echo
-}
-
-
 
 # activate all toolset plugins
 
-alias toolset_activate='wp plugin activate types wp-views cred-frontend-editor layouts types-access'
+alias toolset_activate='wp plugin activate types views cred layouts access'
+
+
+function git_push_upstream {
+	git push --set-upstream origin `git symbolic-ref --short HEAD`
+}
 
 
 ###
